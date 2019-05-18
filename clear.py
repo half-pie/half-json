@@ -8,22 +8,6 @@ from json.decoder import JSONDecoder
 from json.scanner import py_make_scanner
 
 
-"""
-def errmsg(msg, doc, pos, end=None):
-    # Note that this function is called from _json
-    lineno, colno = linecol(doc, pos)
-    if end is None:
-        fmt = '{0}: line {1} column {2} (char {3})'
-        return fmt.format(msg, lineno, colno, pos)
-        #fmt = '%s: line %d column %d (char %d)'
-        #return fmt % (msg, lineno, colno, pos)
-    endlineno, endcolno = linecol(doc, end)
-    fmt = '{0}: line {1} column {2} - line {3} column {4} (char {5} - {6})'
-    return fmt.format(msg, lineno, colno, endlineno, endcolno, pos, end)
-    #fmt = '%s: line %d column %d - line %d column %d (char %d - %d)'
-    #return fmt % (msg, lineno, colno, endlineno, endcolno, pos, end)
-"""
-
 # errmsg.inv
 def inv_errmsg(e):
     message = e.message
@@ -45,25 +29,36 @@ def inv_errmsg(e):
         result["end"] = int(numbers[5])
     return result
 
+decoder = JSONDecoder()
+decoder.scan_once = py_make_scanner(decoder)
 
-# 暂时只考虑 1 行的情况
+
 def find_stop(line):
-    d = JSONDecoder()
-    d.scan_once = py_make_scanner(d)
     try:
         # import pdb
         # pdb.set_trace()
-        obj, end = d.scan_once(line, 0)
-        return line
+        # 暂时只考虑 1 行的情况
+        obj, end = decoder.scan_once(line, 0)
+        return True, line
+    except StopIteration as e:
+        return True, ""
     except ValueError as e:
         err_info = inv_errmsg(e)
         pos = err_info["pos"]
+        nextchar = line[pos: pos+1]
+
         if err_info["err"] == "Expecting object":
-            return insert_line(line, "null", pos)
+            return False, insert_line(line, "null", pos)
         if err_info["err"] == "Expecting ',' delimiter":
-            if line[pos:] == "":
-                return insert_line(line, "}", pos)
-            return insert_line(line, ",", pos)
+            if nextchar == "}":
+                return False, insert_line(line, ",", pos)
+            elif nextchar == "":
+                return False, insert_line(line, "}", pos)
+            return False, insert_line(line, ",", pos)
+        if err_info["err"] == "Expecting property name enclosed in double quotes":
+            return False, insert_line(line, "\"", pos)
+        if err_info["err"] == "Unterminated string starting at":
+            return False, insert_line(line, "\"", pos)
         raise e
 
 
@@ -72,8 +67,11 @@ def insert_line(line, value, pos, end=None):
 
 
 def clear(line):
-    new_line = find_stop(line)
-    return new_line
+    for i in range(3):
+        ok, line = find_stop(line)
+        if ok:
+            break
+    return line
 
 
 def main(filename):

@@ -56,9 +56,32 @@ def make_decoder():
 
 decoder = make_decoder()
 
+"""
+ValueError 抛出
+01. _decode_uXXXX "Invalid \\uXXXX escape"
+02. py_scanstring "Unterminated string starting at"
+03. py_scanstring "Invalid control character {0!r} at".format(terminator)
+04. py_scanstring "Unterminated string starting at"
+05. py_scanstring "Invalid \\escape: " + repr(esc)
+06. JSONObject "Expecting property name enclosed in double quotes"
+07. JSONObject "Expecting ':' delimiter"
+08. JSONObject "Expecting object"
+09. JSONObject "Expecting ',' delimiter"
+10. JSONObject "Expecting property name enclosed in double quotes"
+11. JSONArray  "Expecting object"
+12. JSONArray  "Expecting ',' delimiter"
+
+01 先不看,不研究
+02 badcase:
+
+"""
+
 
 def find_stop(line):
     try:
+        import pdb
+        pdb.set_trace()
+
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
         return True, line

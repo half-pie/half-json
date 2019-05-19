@@ -4,9 +4,11 @@ import re
 import sys
 import traceback
 import functools
+import json.decoder
 
 from json.decoder import JSONDecoder
 from json.scanner import py_make_scanner
+from json.decoder import py_scanstring
 
 
 # errmsg.inv
@@ -46,11 +48,15 @@ def add_parser_name(parser):
 
 
 def make_decoder():
+    json.decoder.scanstring = add_parser_name(py_scanstring)
+
     decoder = JSONDecoder()
     decoder.parse_object = add_parser_name(decoder.parse_object)
     decoder.parse_array = add_parser_name(decoder.parse_array)
     decoder.parse_string = add_parser_name(decoder.parse_string)
     decoder.parse_object = add_parser_name(decoder.parse_object)
+
+    decoder.scan_once = py_make_scanner(decoder)
     return decoder
 
 

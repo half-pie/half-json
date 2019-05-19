@@ -2,20 +2,23 @@
 
 import re
 import sys
-import json
+import traceback
+import functools
 
 from json.decoder import JSONDecoder
 from json.scanner import py_make_scanner
 
 
 # errmsg.inv
-def inv_errmsg(e):
-    message = e.message
+def inv_errmsg(e, exc_info):
+    exc_type, exc_value, exc_traceback_obj = exc_info
 
+    message = e.message
     err, left = message.split(':', 1)
     numbers = re.compile(r'\d+').findall(left)
     result = {
         "err": err,
+        "parser": e.__dict__.get("parser", ""),
         "lineno": int(numbers[0]),
         "colno": int(numbers[1]),
     }
@@ -29,23 +32,43 @@ def inv_errmsg(e):
         result["end"] = int(numbers[5])
     return result
 
-decoder = JSONDecoder()
-decoder.scan_once = py_make_scanner(decoder)
+
+# 记录 Exception 被哪个 parser 抛出的
+def add_parser_name(parser):
+    @functools.wraps
+    def new_parser(*args, **kwargs):
+        try:
+            parser(*args, **kwargs)
+        except Exception as e:
+            e.__dict__["parser"] = parser.__name__
+            raise e
+    return new_parser
+
+
+def make_decoder():
+    decoder = JSONDecoder()
+    decoder.parse_object = add_parser_name(decoder.parse_object)
+    decoder.parse_array = add_parser_name(decoder.parse_array)
+    decoder.parse_string = add_parser_name(decoder.parse_string)
+    decoder.parse_object = add_parser_name(decoder.parse_object)
+    return decoder
+
+
+decoder = make_decoder()
 
 
 def find_stop(line):
     try:
-        # import pdb
-        # pdb.set_trace()
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
         return True, line
     except StopIteration as e:
         return True, ""
     except ValueError as e:
-        err_info = inv_errmsg(e)
+        err_info = inv_errmsg(e, sys.exc_info())
         pos = err_info["pos"]
         nextchar = line[pos: pos+1]
+        parser = err_info["parser"]
 
         if err_info["err"] == "Expecting object":
             return False, insert_line(line, "null", pos)
@@ -55,10 +78,17 @@ def find_stop(line):
             elif nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
+        if err_info["err"] == "Expecting , delimiter":
+            if nextchar == "}":
+                return False, insert_line(line, ",", pos)
+            elif nextchar == "":
+                return False, insert_line(line, "}", pos)
+            return False, insert_line(line, ",", pos)
         if err_info["err"] == "Expecting property name enclosed in double quotes":
             return False, insert_line(line, "\"", pos)
         if err_info["err"] == "Unterminated string starting at":
             return False, insert_line(line, "\"", pos)
+
         raise e
 
 

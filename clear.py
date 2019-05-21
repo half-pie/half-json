@@ -95,7 +95,13 @@ ValueError 抛出
 08.2 要么后面不是 "/{/[/n[ull]/t[rue]/f[alse]/number/NaN/Infinity/-Infinity 开头的东西
 -- 08.1 后面补上 null}
 -- 08.2 无脑补一个 "
-09 object
+09 object 解析完一个 pair 后,下一个不是}, 期待一个 ','
+   badcase {"k":1"s":2}
+10 在 09 的基础上解析完{"k":1, 发现下一个不是 ", 这个后面再优化(暂时和 06 一致)
+   badcase {"k":1,x":2}
+11 array 开始检测 Value 收到 StopIteration
+11.1 要么后面没有了,补上]
+11.2 同 08.2,无脑补一个{ 看看
 """
 
 
@@ -126,14 +132,24 @@ def find_stop(line):
         if errmsg == "Expecting ':' delimiter":
             return False, insert_line(line, ":", pos)
         # 08
-        if errmsg == "Expecting object":
+        if parser == "parse_object" and errmsg == "Expecting object":
             # 08.1
             if line[pos:pos+1] == "":
                 return False, insert_line(line, "null}", pos)
             # 08.2
             else:
                 return False, insert_line(line, "\"", pos)
-
+        # 09
+        if parser == "parse_object" and errmsg == "Expecting ',' delimiter":
+            return False, insert_line(line, ",", pos)
+        # 11
+        if parser == "parse_array" and errmsg == "Expecting object":
+            # 11.1
+            if line[pos:pos+1] == "":
+                return False, insert_line(line, "]", pos)
+            # 11.2
+            else:
+                return False, insert_line(line, "{", pos)
         if errmsg == "Expecting ',' delimiter":
             if nextchar == "}":
                 return False, insert_line(line, ",", pos)

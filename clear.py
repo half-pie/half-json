@@ -90,6 +90,12 @@ ValueError 抛出
 05 同上
 06 object 后面没有跟随 " , badcase: {abc":1} --> {"abc":1}
 07 object key 后面没有 : , badcase: {"abc"1} --> {"abc":1}
+08 object 开始检测 Value 收到 StopIteration
+08.1 要么后面没有了
+08.2 要么后面不是 "/{/[/n[ull]/t[rue]/f[alse]/number/NaN/Infinity/-Infinity 开头的东西
+-- 08.1 后面补上 null}
+-- 08.2 无脑补一个 "
+09 object
 """
 
 
@@ -110,8 +116,24 @@ def find_stop(line):
         parser = err_info["parser"]
         errmsg = err_info["errmsg"]
 
+        # 02
+        if errmsg == "Unterminated string starting at":
+            return False, insert_line(line, "\"", pos)
+        # 06
+        if errmsg == "Expecting property name enclosed in double quotes":
+            return False, insert_line(line, "\"", pos)
+        # 07
+        if errmsg == "Expecting ':' delimiter":
+            return False, insert_line(line, ":", pos)
+        # 08
         if errmsg == "Expecting object":
-            return False, insert_line(line, "null", pos)
+            # 08.1
+            if line[pos:pos+1] == "":
+                return False, insert_line(line, "null}", pos)
+            # 08.2
+            else:
+                return False, insert_line(line, "\"", pos)
+
         if errmsg == "Expecting ',' delimiter":
             if nextchar == "}":
                 return False, insert_line(line, ",", pos)
@@ -124,14 +146,6 @@ def find_stop(line):
             elif nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
-        # 06
-        if errmsg == "Expecting property name enclosed in double quotes":
-            return False, insert_line(line, "\"", pos)
-        if errmsg == "Expecting ':' delimiter":
-            return False, insert_line(line, ":", pos)
-        if errmsg == "Unterminated string starting at":
-            return False, insert_line(line, "\"", pos)
-
         raise e
 
 
@@ -140,7 +154,7 @@ def insert_line(line, value, pos, end=None):
 
 
 def clear(line):
-    for i in range(3):
+    for i in range(10):
         # import pdb
         # pdb.set_trace()
         ok, line = find_stop(line)

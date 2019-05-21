@@ -16,10 +16,13 @@ def inv_errmsg(e, exc_info):
     exc_type, exc_value, exc_traceback_obj = exc_info
 
     message = e.message
-    err, left = message.split(':', 1)
+    # err, left = message.split(':', 1)  # badcase Expecting ':' delimiter
+    idx = message.rindex(':')
+    errmsg = message[:idx]
+    left = message[idx + 1:]
     numbers = re.compile(r'\d+').findall(left)
     result = {
-        "err": err,
+        "errmsg": errmsg,
         "parser": e.__dict__.get("parser", ""),
         "lineno": int(numbers[0]),
         "colno": int(numbers[1]),
@@ -37,10 +40,11 @@ def inv_errmsg(e, exc_info):
 
 # 记录 Exception 被哪个 parser 抛出的
 def add_parser_name(parser):
-    @functools.wraps
+
+    # @functools.wraps
     def new_parser(*args, **kwargs):
         try:
-            parser(*args, **kwargs)
+            return parser(*args, **kwargs)
         except Exception as e:
             e.__dict__["parser"] = parser.__name__
             raise e
@@ -48,15 +52,17 @@ def add_parser_name(parser):
 
 
 def make_decoder():
-    json.decoder.scanstring = add_parser_name(py_scanstring)
+    # json.decoder.scanstring = py_scanstring
 
     decoder = JSONDecoder()
     decoder.parse_object = add_parser_name(decoder.parse_object)
     decoder.parse_array = add_parser_name(decoder.parse_array)
-    decoder.parse_string = add_parser_name(decoder.parse_string)
+    decoder.parse_string = add_parser_name(py_scanstring)
     decoder.parse_object = add_parser_name(decoder.parse_object)
 
     decoder.scan_once = py_make_scanner(decoder)
+
+    json.decoder.scanstring = add_parser_name(py_scanstring)
     return decoder
 
 
@@ -78,15 +84,19 @@ ValueError 抛出
 12. JSONArray  "Expecting ',' delimiter"
 
 01 先不看,不研究
-02 badcase:
-
+02 badcase: " --> "" success
+03 控制符 pass
+04 unicode \\u 的 pass
+05 同上
+06 object 后面没有跟随 " , badcase: {abc":1} --> {"abc":1}
+07 object key 后面没有 : , badcase: {"abc"1} --> {"abc":1}
 """
 
 
 def find_stop(line):
     try:
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
@@ -98,24 +108,28 @@ def find_stop(line):
         pos = err_info["pos"]
         nextchar = line[pos: pos+1]
         parser = err_info["parser"]
+        errmsg = err_info["errmsg"]
 
-        if err_info["err"] == "Expecting object":
+        if errmsg == "Expecting object":
             return False, insert_line(line, "null", pos)
-        if err_info["err"] == "Expecting ',' delimiter":
+        if errmsg == "Expecting ',' delimiter":
             if nextchar == "}":
                 return False, insert_line(line, ",", pos)
             elif nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
-        if err_info["err"] == "Expecting , delimiter":
+        if errmsg == "Expecting , delimiter":
             if nextchar == "}":
                 return False, insert_line(line, ",", pos)
             elif nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
-        if err_info["err"] == "Expecting property name enclosed in double quotes":
+        # 06
+        if errmsg == "Expecting property name enclosed in double quotes":
             return False, insert_line(line, "\"", pos)
-        if err_info["err"] == "Unterminated string starting at":
+        if errmsg == "Expecting ':' delimiter":
+            return False, insert_line(line, ":", pos)
+        if errmsg == "Unterminated string starting at":
             return False, insert_line(line, "\"", pos)
 
         raise e
@@ -127,6 +141,8 @@ def insert_line(line, value, pos, end=None):
 
 def clear(line):
     for i in range(3):
+        # import pdb
+        # pdb.set_trace()
         ok, line = find_stop(line)
         if ok:
             break

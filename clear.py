@@ -102,13 +102,14 @@ ValueError 抛出
 11 array 开始检测 Value 收到 StopIteration
 11.1 要么后面没有了,补上]
 11.2 同 08.2,无脑补一个{ 看看
+12 array 解析完前一个 object, 需要一个 ,
 """
 
 
 def find_stop(line):
     try:
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
@@ -132,7 +133,7 @@ def find_stop(line):
         if errmsg == "Expecting ':' delimiter":
             return False, insert_line(line, ":", pos)
         # 08
-        if parser == "parse_object" and errmsg == "Expecting object":
+        if parser == "JSONObject" and errmsg == "Expecting object":
             # 08.1
             if line[pos:pos+1] == "":
                 return False, insert_line(line, "null}", pos)
@@ -140,28 +141,25 @@ def find_stop(line):
             else:
                 return False, insert_line(line, "\"", pos)
         # 09
-        if parser == "parse_object" and errmsg == "Expecting ',' delimiter":
+        if parser == "JSONObject" and errmsg == "Expecting ',' delimiter":
             return False, insert_line(line, ",", pos)
         # 11
-        if parser == "parse_array" and errmsg == "Expecting object":
+        if parser == "JSONArray" and errmsg == "Expecting object":
+            # 11.1
+            if line[pos:pos+1] == "":
+                return False, insert_line(line, "null]", pos)
+            # 11.2
+            else:
+                return False, insert_line(line, "{", pos)
+                # 也许可以删掉前面的 , 补一个]
+        # 12
+        if parser == "JSONArray" and errmsg == "Expecting ',' delimiter":
             # 11.1
             if line[pos:pos+1] == "":
                 return False, insert_line(line, "]", pos)
             # 11.2
             else:
-                return False, insert_line(line, "{", pos)
-        if errmsg == "Expecting ',' delimiter":
-            if nextchar == "}":
                 return False, insert_line(line, ",", pos)
-            elif nextchar == "":
-                return False, insert_line(line, "}", pos)
-            return False, insert_line(line, ",", pos)
-        if errmsg == "Expecting , delimiter":
-            if nextchar == "}":
-                return False, insert_line(line, ",", pos)
-            elif nextchar == "":
-                return False, insert_line(line, "}", pos)
-            return False, insert_line(line, ",", pos)
         raise e
 
 

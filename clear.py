@@ -108,12 +108,13 @@ ValueError 抛出
 
 def find_stop(line):
     try:
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
-        return True, line
+        # TODO end is only part of line
+        return end == len(line), line
     except StopIteration as e:
         return True, ""
     except ValueError as e:
@@ -125,6 +126,7 @@ def find_stop(line):
 
         # 02
         if errmsg == "Unterminated string starting at":
+            # TODO resolve "abc --> "abc"
             return False, insert_line(line, "\"", pos)
         # 06
         if errmsg == "Expecting property name enclosed in double quotes":
@@ -168,25 +170,40 @@ def insert_line(line, value, pos, end=None):
 
 
 def clear(line):
+    ok = False
     for i in range(10):
-        # import pdb
-        # pdb.set_trace()
         ok, line = find_stop(line)
         if ok:
             break
-    return line
+    return ok, line
 
 
-def main(filename):
-    f = open(filename, 'r')
+def main(infile, outfile):
+    inf = open(infile, 'r')
+    outf = open(outfile, 'w')
     output = sys.stdout
-    for line in f:
-        new_line = clear(line.strip())
-        output.write(new_line + "\n")
 
-    output.close()
-    f.close()
+    total = 0
+    hit = 0
+
+    for line in inf:
+        try:
+            total += 1
+            ok, new_line = clear(line.strip())
+            if ok:
+                outf.write(new_line + "\n")
+                hit += 1
+            else:
+                print(ok)
+                print(line)
+                print(new_line)
+        except Exception as e:
+            print(e)
+            print(line)
+    print("total is {}, and hit {} \n".format(total, hit))
+    inf.close()
+    outf.close()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])

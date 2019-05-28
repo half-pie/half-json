@@ -189,18 +189,16 @@ def main(infile, outfile):
     for line in inf:
         try:
             total += 1
-            ok, new_line = clear(line.strip())
+            line = line.strip()
+            ok, new_line = clear(line)
             if ok:
                 outf.write(new_line + "\n")
                 hit += 1
             else:
-                print(ok)
-                print(line)
-                print(new_line)
+                print(ok, line, new_line)
         except Exception as e:
-            print(e)
-            print(line)
-    print("total is {}, and hit {} \n".format(total, hit))
+            print(e, line)
+    print("total is {}, and hit {} --> ratio:{} \n".format(total, hit, hit*1.0/total))
     inf.close()
     outf.close()
 

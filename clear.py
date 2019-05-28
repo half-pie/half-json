@@ -106,11 +106,14 @@ ValueError 抛出
     这里 nextchar 既不是 ] 也不是, 代表这个 nextchar 的 end 也已经+1 了，所以减 2
 """
 
+def process_number():
+    pass
+
 
 def find_stop(line):
     try:
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
@@ -138,7 +141,7 @@ def find_stop(line):
         # 08
         if parser == "JSONObject" and errmsg == "Expecting object":
             # 08.1
-            if line[pos:pos+1] == "":
+            if nextchar == "":
                 return False, insert_line(line, "null}", pos)
             # 08.2
             else:
@@ -148,8 +151,10 @@ def find_stop(line):
             return False, insert_line(line, ",", pos)
         # 11
         if parser == "JSONArray" and errmsg == "Expecting object":
+            if nextchar == ",":
+                return False, insert_line(line, "null", pos)
             # 11.1
-            if line[pos:pos+1] == "":
+            if nextchar == "":
                 return False, insert_line(line, "null]", pos)
             # 11.2
             else:
@@ -158,7 +163,7 @@ def find_stop(line):
         # 12
         if parser == "JSONArray" and errmsg == "Expecting ',' delimiter":
             # 11.1
-            if line[pos:pos+1] == "":
+            if nextchar == "":
                 return False, insert_line(line, "]", pos)
             # 11.2
             else:

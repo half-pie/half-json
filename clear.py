@@ -103,6 +103,7 @@ ValueError 抛出
 11.1 要么后面没有了,补上]
 11.2 同 08.2,无脑补一个{ 看看
 12 array 解析完前一个 object, 需要一个 ,
+    这里 nextchar 既不是 ] 也不是, 代表这个 nextchar 的 end 也已经+1 了，所以减 2
 """
 
 
@@ -161,7 +162,7 @@ def find_stop(line):
                 return False, insert_line(line, "]", pos)
             # 11.2
             else:
-                return False, insert_line(line, ",", pos)
+                return False, insert_line(line, ",", pos - 2)
         raise e
 
 

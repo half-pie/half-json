@@ -46,7 +46,8 @@ def add_parser_name(parser):
         try:
             return parser(*args, **kwargs)
         except Exception as e:
-            e.__dict__["parser"] = parser.__name__
+            if "parser" not in  e.__dict__:
+                e.__dict__["parser"] = parser.__name__
             raise e
     return new_parser
 
@@ -112,8 +113,8 @@ def process_number():
 
 def find_stop(line):
     try:
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
@@ -134,6 +135,10 @@ def find_stop(line):
             return False, insert_line(line, "\"", len(line))
         # 06
         if errmsg == "Expecting property name enclosed in double quotes":
+            # lastchar = line[pos-1: pos]
+            # for case {
+            # if lastchar == "{" and all([c not in line for c in '"}:']):
+            #     return False, insert_line(line, "}", pos)
             return False, insert_line(line, "\"", pos)
         # 07
         if errmsg == "Expecting ':' delimiter":

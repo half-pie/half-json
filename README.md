@@ -34,3 +34,8 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 ## TODO
 
 1. 考虑尽量改成回溯的方式来试探
+
+## BadCase
+
+1. {}]  / []]
+2. 00

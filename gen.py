@@ -19,7 +19,7 @@ def get_random_object():
         for i in range(random.randint(0, 3)):
             obj[gen_random_str()] = get_random_object()
     if isinstance(obj, list):
-        for i in range(random.randint(0, 4)):
+        for i in range(random.randint(0, 3)):
             obj.append(get_random_object())
     return obj
 

@@ -153,6 +153,8 @@ def find_stop(line):
                 return False, insert_line(line, "\"", pos)
         # 09
         if parser == "JSONObject" and errmsg == "Expecting ',' delimiter":
+            if nextchar == "":
+                return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
         # 11
         if parser == "JSONArray" and errmsg == "Expecting object":
@@ -167,12 +169,23 @@ def find_stop(line):
                 # 也许可以删掉前面的 , 补一个]
         # 12
         if parser == "JSONArray" and errmsg == "Expecting ',' delimiter":
+            """
+            code:
+
+            end += 1
+            if nextchar == ']':
+                break
+            elif nextchar != ',':
+                raise ValueError(errmsg("Expecting ',' delimiter", s, end))
+            """
+            pos = pos - 1
+            nextchar = line[pos: pos +1]
             # 11.1
             if nextchar == "":
                 return False, insert_line(line, "]", pos)
             # 11.2
             else:
-                return False, insert_line(line, ",", pos - 2)
+                return False, insert_line(line, ",", pos)
         raise e
 
 

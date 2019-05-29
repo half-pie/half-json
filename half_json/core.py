@@ -113,8 +113,8 @@ def process_number():
 
 def find_stop(line):
     try:
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
         # 暂时只考虑 1 行的情况
         obj, end = decoder.scan_once(line, 0)
@@ -128,6 +128,7 @@ def find_stop(line):
         nextchar = line[pos: pos+1]
         parser = err_info["parser"]
         errmsg = err_info["errmsg"]
+        lastchar = line[pos-1: pos]
 
         # 02
         if errmsg == "Unterminated string starting at":
@@ -158,6 +159,7 @@ def find_stop(line):
             return False, insert_line(line, ",", pos)
         # 11
         if parser == "JSONArray" and errmsg == "Expecting object":
+            # ?
             if nextchar == ",":
                 return False, insert_line(line, "null", pos)
             # 11.1
@@ -171,7 +173,6 @@ def find_stop(line):
         if parser == "JSONArray" and errmsg == "Expecting ',' delimiter":
             """
             code:
-
             end += 1
             if nextchar == ']':
                 break

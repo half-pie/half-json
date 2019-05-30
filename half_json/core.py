@@ -4,79 +4,89 @@ from half_json.json_util import errmsg_inv
 from half_json.json_util import errors
 
 
-def find_stop(line):
+def check_line(line):
+    # 暂时只考虑 1 行的情况
     try:
-        # 暂时只考虑 1 行的情况
-        obj, end = decoder.scan_once(line, 0)
-        # TODO end is only part of line
-        return end == len(line), line
+        _, end = decoder.scan_once(line, 0)
+        return end == len(line), None
     except StopIteration as e:
-        return True, ""
+        return False, None
     except ValueError as e:
         err_info = errmsg_inv(e)
-        error = err_info["error"]
-        pos = err_info["pos"]
-        nextchar = line[pos: pos+1]
-        # lastchar = line[pos-1: pos]
+        if err_info["error"] is None:
+            raise e
+        return False, err_info
 
-        # 02
-        if error == errors.StringUnterminatedString:
-            # TODO resolve "abc --> "abc"
-            return False, insert_line(line, "\"", len(line))
-        # 06
-        if error == errors.ObjectExceptKey:
-            # lastchar = line[pos-1: pos]
-            # for case {
-            # if lastchar == "{" and all([c not in line for c in '"}:']):
-            #     return False, insert_line(line, "}", pos)
+
+def patch_line(line, context=None):
+    ok, err_info = check_line(line)
+    if ok:
+        return True, line
+    if err_info is None:
+        return False, line
+
+    error = err_info["error"]
+    pos = err_info["pos"]
+    nextchar = line[pos: pos+1]
+    # 02
+    if error == errors.StringUnterminatedString:
+        # TODO resolve "abc --> "abc"
+        return False, insert_line(line, "\"", len(line))
+    # 06
+    if error == errors.ObjectExceptKey:
+        # lastchar = line[pos-1: pos]
+        # for case {
+        # if lastchar == "{" and all([c not in line for c in '"}:']):
+        #     return False, insert_line(line, "}", pos)
+        return False, insert_line(line, "\"", pos)
+    # 07
+    if error == errors.ObjectExceptColon:
+        return False, insert_line(line, ":", pos)
+    # 08
+    if error == errors.ObjectExceptObject:
+        # 08.1
+        if nextchar == "":
+            return False, insert_line(line, "null}", pos)
+        # 08.2
+        else:
             return False, insert_line(line, "\"", pos)
-        # 07
-        if error == errors.ObjectExceptColon:
-            return False, insert_line(line, ":", pos)
-        # 08
-        if error == errors.ObjectExceptObject:
-            # 08.1
-            if nextchar == "":
-                return False, insert_line(line, "null}", pos)
-            # 08.2
-            else:
-                return False, insert_line(line, "\"", pos)
-        # 09
-        if error == errors.ObjectExceptComma:
-            if nextchar == "":
-                return False, insert_line(line, "}", pos)
+    # 09
+    if error == errors.ObjectExceptComma:
+        if nextchar == "":
+            return False, insert_line(line, "}", pos)
+        return False, insert_line(line, ",", pos)
+    # 11
+    if error == errors.ArrayExceptObject:
+        # ?
+        if nextchar == ",":
+            return False, insert_line(line, "null", pos)
+        # 11.1
+        if nextchar == "":
+            return False, insert_line(line, "null]", pos)
+        # 11.2
+        else:
+            return False, insert_line(line, "{", pos)
+            # 也许可以删掉前面的 , 补一个]
+    # 12
+    if error == errors.ArrayExceptComma:
+        """
+        code:
+        end += 1
+        if nextchar == ']':
+            break
+        elif nextchar != ',':
+            raise ValueError(errmsg("Expecting ',' delimiter", s, end))
+        """
+        pos = pos - 1
+        nextchar = line[pos: pos + 1]
+        # 11.1
+        if nextchar == "":
+            return False, insert_line(line, "]", pos)
+        # 11.2
+        else:
             return False, insert_line(line, ",", pos)
-        # 11
-        if error == errors.ArrayExceptObject:
-            # ?
-            if nextchar == ",":
-                return False, insert_line(line, "null", pos)
-            # 11.1
-            if nextchar == "":
-                return False, insert_line(line, "null]", pos)
-            # 11.2
-            else:
-                return False, insert_line(line, "{", pos)
-                # 也许可以删掉前面的 , 补一个]
-        # 12
-        if error == errors.ArrayExceptComma:
-            """
-            code:
-            end += 1
-            if nextchar == ']':
-                break
-            elif nextchar != ',':
-                raise ValueError(errmsg("Expecting ',' delimiter", s, end))
-            """
-            pos = pos - 1
-            nextchar = line[pos: pos + 1]
-            # 11.1
-            if nextchar == "":
-                return False, insert_line(line, "]", pos)
-            # 11.2
-            else:
-                return False, insert_line(line, ",", pos)
-        raise e
+    # unknonwn
+    return False, line
 
 
 def insert_line(line, value, pos, end=None):
@@ -85,8 +95,8 @@ def insert_line(line, value, pos, end=None):
 
 def clear(line):
     ok = False
-    for i in range(10):
-        ok, line = find_stop(line)
+    for i in range(40):
+        ok, line = patch_line(line)
         if ok:
             break
     return ok, line

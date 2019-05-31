@@ -2,6 +2,7 @@
 import json
 import random
 
+
 def gen_random_str():
     chars = range(33, 127)
     s = ""
@@ -9,8 +10,10 @@ def gen_random_str():
         s += chr(random.choice(chars))
     return s
 
+
 def gen_random_int():
     return random.choice([0, 1, 0.0, -1, -0.2, 123123123123121312312312, 32323e3])
+
 
 def get_random_object():
     funcs = [dict, list, gen_random_str, gen_random_int]

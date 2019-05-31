@@ -35,6 +35,7 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 ## TODO
 
 1. 考虑尽量改成回溯的方式来试探
+2. 解析缺失的 JSON 常量
 
 ## BadCase
 

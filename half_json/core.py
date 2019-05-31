@@ -18,6 +18,14 @@ def check_line(line):
         return False, err_info
 
 
+def insert_line(line, value, pos, end=None):
+    return line[:pos] + value + line[pos:]
+
+
+def remove_line(line, start, end):
+    return line[:start] + line[end:]
+
+
 def patch_line(line, context=None):
     ok, err_info = check_line(line)
     if ok:
@@ -27,17 +35,32 @@ def patch_line(line, context=None):
 
     error = err_info["error"]
     pos = err_info["pos"]
-    nextchar = line[pos: pos+1]
+    nextchar = line[pos: pos + 1]
+    lastchar = line[pos - 1: pos]
+    # TODO
+    # nextline = line[pos:]
+    # lastline = line[:pos]
+
     # 02
     if error == errors.StringUnterminatedString:
         # TODO resolve "abc --> "abc"
         return False, insert_line(line, "\"", len(line))
     # 06
     if error == errors.ObjectExceptKey:
-        # lastchar = line[pos-1: pos]
-        # for case {
-        # if lastchar == "{" and all([c not in line for c in '"}:']):
-        #     return False, insert_line(line, "}", pos)
+        # quick
+        if nextchar == "":
+            return False, insert_line(line, "}", pos)
+        # miss key
+        if nextchar == ":":
+            return False, insert_line(line, "\"\"", pos)
+        # miss a pair
+        if nextchar == "," and lastchar in "{,":
+            return False, remove_line(line, pos, pos + 1)
+        # fix-error
+        if lastchar == "," and nextchar == "}":
+            return False, remove_line(line, pos - 1, pos)
+        # dosomething
+        # if lastchar == "{":
         return False, insert_line(line, "\"", pos)
     # 07
     if error == errors.ObjectExceptColon:
@@ -46,10 +69,12 @@ def patch_line(line, context=None):
     if error == errors.ObjectExceptObject:
         # 08.1
         if nextchar == "":
+            # quick
+            if lastchar == "{":
+                return False, insert_line(line, "}", pos)
             return False, insert_line(line, "null}", pos)
         # 08.2
-        else:
-            return False, insert_line(line, "\"", pos)
+        return False, insert_line(line, "\"", pos)
     # 09
     if error == errors.ObjectExceptComma:
         if nextchar == "":
@@ -57,16 +82,20 @@ def patch_line(line, context=None):
         return False, insert_line(line, ",", pos)
     # 11
     if error == errors.ArrayExceptObject:
-        # ?
+        # fix-error
+        if lastchar == "[" and nextchar == ",":
+            return False, remove_line(line, pos, pos + 1)
         if nextchar == ",":
             return False, insert_line(line, "null", pos)
         # 11.1
         if nextchar == "":
+            # quick
+            if lastchar == "[":
+                return False, insert_line(line, "]", pos)
             return False, insert_line(line, "null]", pos)
         # 11.2
-        else:
-            return False, insert_line(line, "{", pos)
-            # 也许可以删掉前面的 , 补一个]
+        return False, insert_line(line, "{", pos)
+        # 也许可以删掉前面的 , 补一个]
     # 12
     if error == errors.ArrayExceptComma:
         """
@@ -83,14 +112,9 @@ def patch_line(line, context=None):
         if nextchar == "":
             return False, insert_line(line, "]", pos)
         # 11.2
-        else:
-            return False, insert_line(line, ",", pos)
+        return False, insert_line(line, ",", pos)
     # unknonwn
     return False, line
-
-
-def insert_line(line, value, pos, end=None):
-    return line[:pos] + value + line[pos:]
 
 
 def clear(line):

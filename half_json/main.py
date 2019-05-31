@@ -26,6 +26,6 @@ def fixjson():
                 print(ok, line, new_line)
         except Exception as e:
             print(e, line)
-    print("total is {} and hit {} --> ratio:{} \n".format(total, hit, hit*1.0/total))
+    print("total is {} and hit {} --> ratio:{} \n".format(total, hit, hit * 1.0 / total))
     inf.close()
     outf.close()

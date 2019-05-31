@@ -33,6 +33,15 @@ class errors(object):
     ArrayExceptObject = JSONDecodeError("JSONArray", "Expecting object")
     ArrayExceptComma = JSONDecodeError("JSONArray", "Expecting ',' delimiter")
 
+    @classmethod
+    def get_decode_error(cls, parser, message):
+        err = JSONDecodeError(parser, message)
+        for _, value in cls.__dict__.items():
+            if isinstance(value, JSONDecodeError):
+                if err == value:
+                    return value
+        return None
+
     """
     01 先不看,不研究
     02 badcase: " --> "" success
@@ -68,7 +77,7 @@ def errmsg_inv(e):
     parser = e.__dict__.get("parser", "")
 
     result = {
-        "error": JSONDecodeError(parser, errmsg),
+        "error": errors.get_decode_error(parser, errmsg),
         "lineno": int(numbers[0]),
         "colno": int(numbers[1]),
     }

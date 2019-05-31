@@ -6,7 +6,7 @@ import random
 
 def borken(s):
     idx = random.randint(0, len(s) + 1)
-    return s[:idx] + s[idx+1:]
+    return s[:idx] + s[idx + 1:]
 
 
 def main(inflie, outfile):

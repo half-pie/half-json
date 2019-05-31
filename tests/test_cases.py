@@ -66,3 +66,9 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline = clear(line)
         self.assertTrue(ok)
         self.assertEqual('{"a":1,"b":null}', newline)
+
+    def test_many_from_adhocore(self):
+        line = '{"a":1,'
+        ok, newline = clear(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"a":1}', newline)

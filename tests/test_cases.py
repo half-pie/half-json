@@ -53,7 +53,7 @@ class TestSimpleCase(unittest.TestCase):
         line = '[{,'
         ok, newline = clear(line)
         self.assertTrue(ok)
-        self.assertEqual('[{"":null}]', newline)
+        self.assertEqual('[{}]', newline)
 
     def test_miss_quote(self):
         line = '{"a'

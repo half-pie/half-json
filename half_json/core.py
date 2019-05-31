@@ -55,8 +55,7 @@ def patch_line(line, context=None):
             return False, insert_line(line, "\"\"", pos)
         # miss a pair
         if nextchar == "," and lastchar in "{,":
-            return False, insert_line(line, "\"\":null", pos)
-            # return False, remove_line(line, pos, pos+1)
+            return False, remove_line(line, pos, pos+1)
         # fix-error
         if lastchar == "," and nextchar == "}":
             return False, remove_line(line, pos-1, pos)
@@ -85,7 +84,7 @@ def patch_line(line, context=None):
     if error == errors.ArrayExceptObject:
         # fix-error
         if lastchar == "[" and nextchar == ",":
-            return False, remove_line(line, pos-1, pos)
+            return False, remove_line(line, pos, pos+1)
         if nextchar == ",":
             return False, insert_line(line, "null", pos)
         # 11.1

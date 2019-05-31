@@ -37,9 +37,9 @@ def patch_line(line, context=None):
     pos = err_info["pos"]
     nextchar = line[pos: pos+1]
     lastchar = line[pos-1: pos]
-    nextline = line[pos:]
-    lastline = line[:pos]
-
+    # TODO
+    # nextline = line[pos:]
+    # lastline = line[:pos]
 
     # 02
     if error == errors.StringUnterminatedString:

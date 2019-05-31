@@ -30,3 +30,9 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline = clear(line)
         self.assertTrue(ok)
         self.assertEqual('[null,null]', newline)
+
+    def test_simple_mix(self):
+        line = '[{,'
+        ok, newline = clear(line)
+        self.assertTrue(ok)
+        self.assertEqual('[{"":null}]', newline)

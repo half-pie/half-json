@@ -18,6 +18,14 @@ def check_line(line):
         return False, err_info
 
 
+def insert_line(line, value, pos, end=None):
+    return line[:pos] + value + line[pos:]
+
+
+def remove_line(line, start, end):
+    return line[:start] + line[end:]
+
+
 def patch_line(line, context=None):
     ok, err_info = check_line(line)
     if ok:
@@ -45,6 +53,12 @@ def patch_line(line, context=None):
         # miss key
         if nextchar == ":":
             return False, insert_line(line, "\"\"", pos)
+        # miss a pair
+        if nextchar == "," and lastchar in "{,":
+            return False, insert_line(line, "\"\":null", pos)
+        # extra ','
+        if lastchar == "," and nextchar == "}":
+            return False, remove_line(line, pos-1, pos)
         # dosomething
         # if lastchar == "{":
         return False, insert_line(line, "\"", pos)
@@ -99,10 +113,6 @@ def patch_line(line, context=None):
         return False, insert_line(line, ",", pos)
     # unknonwn
     return False, line
-
-
-def insert_line(line, value, pos, end=None):
-    return line[:pos] + value + line[pos:]
 
 
 def clear(line):

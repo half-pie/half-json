@@ -1,7 +1,7 @@
 # coding=utf8
 import sys
 
-from half_json.core import clear
+from half_json.core import JSONFixer
 
 
 def fixjson():
@@ -14,11 +14,14 @@ def fixjson():
     total = 0
     hit = 0
 
+    fixer = JSONFixer()
     for line in inf:
         try:
-            total += 1
             line = line.strip()
-            ok, new_line = clear(line)
+            if not line:
+                continue
+            total += 1
+            ok, new_line = fixer.fix(line)
             if ok:
                 outf.write(new_line + "\n")
                 hit += 1

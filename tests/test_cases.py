@@ -72,3 +72,9 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"a":1}', newline)
+
+    def test_case_from_stackoverflow(self):
+        line = '{"title": "Center "ADVANCE"", "text": "Business.English."}'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"title": "Center ","ADVANCE":", ","text": "Business.English."}', newline)

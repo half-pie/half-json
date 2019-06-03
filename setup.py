@@ -13,7 +13,7 @@ with io.open('README.md', encoding='utf-8') as f:
 
 setup(
     name='jsonfixer',
-    version='0.1.4a',
+    version='0.1.4b',
     url='https://github.com/half-pie/half-json',
     description='jsonfixer: fix invalid json: broken-json / truncated-json.',
     long_description=readme,

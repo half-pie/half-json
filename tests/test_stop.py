@@ -5,7 +5,7 @@ import unittest
 from half_json.core import JSONFixer
 
 
-class TestSimpleCase(unittest.TestCase):
+class TestOtherCase(unittest.TestCase):
 
     def test_patch_left_object(self):
         line = '}'
@@ -19,5 +19,8 @@ class TestSimpleCase(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual('[]', newline)
 
-    # TODO
-    # '[]]'
+    def test_patch_half_array(self):
+        line = '[]]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[[]]', newline)

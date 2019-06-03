@@ -21,21 +21,22 @@ Out[4]: FixResult(success=True, line='{"a":null}', origin=False)
 1. 根据异常提示来做一些操作, json 预期啥给啥
 2. 根据文本前后,删除一些 BadCase
 
-## 当前测试
+## HitRatio
 
 ```bash
 ./runtest.sh
 # 查看准确率
 seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}'|tail -1
 ```
-
-## HitRatio
 1. 0.4269, 0.4287, 0.4303   # 实现完 12 条规则
 2. 0.5037, 0.5084, 0.5077   # string 的 " 补充在末尾
 3. 0.5259, 0.5224, 0.5187   # Array 需要 pos - 2
 4. 0.5433, 0.5311, 0.5381   # Array 细化一下 [, 的情况
 5. 0.7192, 0.7216, 0.7265   # 大改进, FIX 之前的 Bug( parser 被冲掉了)
 6. 0.7732, 0.7686, 0.7701   # case: {"a":1 --> 补充 }
+7. 0.60  , 0.58             # 去掉了空行
+8. 0.6971, 0.6969, 0.6984   # 增加处理 StopIteration
+9. 0.7428, 0.7383, 0.7427   # 增加处理 half parse
 
 ## 目前的缺点 && 发现
 
@@ -53,5 +54,5 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 
 ## BadCase
 
-1. {}]  / []]
-2. 00
+1. {}}
+2.

@@ -43,6 +43,10 @@ class JSONFixer(object):
 
         if isinstance(result.exception, StopIteration):
             return self.patch_stop_iteration(line)
+
+        if result.exception is None:
+            return self.patch_half_parse(line, result.err_info)
+
         return False, line
 
     def patch_value_error(self, line, err_info):
@@ -141,8 +145,16 @@ class JSONFixer(object):
         # 2. ]}
         # 3. constans
         # 先 patch 完 {[]}
-        return False, patch_left_object_and_array(line)
-        # return False, line
+        left = patch_left_object_and_array(line)
+        new_line = left + line
+        return False, new_line
+
+    def patch_half_parse(self, line, err_info):
+        obj, end = err_info
+        nextline = line[end:]
+        left = patch_left_object_and_array(nextline)
+        new_line = left + line[:end] + nextline
+        return False, new_line
 
 
 def patch_left_object_and_array(line):
@@ -156,7 +168,7 @@ def patch_left_object_and_array(line):
         if char in pairs:
             left = pairs[char] + left
 
-    return left + line
+    return left
 
 
 def insert_line(line, value, pos, end=None):

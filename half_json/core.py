@@ -80,7 +80,7 @@ class JSONFixer(object):
             if lastchar == "," and nextchar == "}":
                 return False, remove_line(line, pos - 1, pos)
             # {[ or {"a":1,[ --> "":[
-            if nextchar == "[":
+            if nextchar in "[{":
                 return False, insert_line(line, "\"\":", pos)
             # dosomething
             # if lastchar == "{":

@@ -24,3 +24,21 @@ class TestOtherCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('[[]]', newline)
+
+    def test_patch_half_object(self):
+        line = '{}}'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"":{}}', newline)
+
+    def test_patch_half_object_array(self):
+        line = '{}]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[{}]', newline)
+
+    def test_patch_half_array_object(self):
+        line = '[]}'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"":[]}', newline)

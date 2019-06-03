@@ -13,7 +13,7 @@ script:
     - flake8 half_json tests --max-line-length=200
     - nosetests --cover-package=half_json --with-coverage
     - python setup.py install
-    - jsonfixer checks/online.json checks/online.fix.json
+    - jsonfixer checks/oneline.json checks/oneline.fix.json
     - cd checks && ./runtest.sh
 
 after_success:

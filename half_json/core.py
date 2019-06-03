@@ -80,7 +80,7 @@ class JSONFixer(object):
             if lastchar == "," and nextchar == "}":
                 return False, remove_line(line, pos - 1, pos)
             # {[ or {"a":1,[ --> "":[
-            if nextchar == "[":
+            if nextchar in "[{":
                 return False, insert_line(line, "\"\":", pos)
             # dosomething
             # if lastchar == "{":
@@ -151,8 +151,16 @@ class JSONFixer(object):
 
     def patch_half_parse(self, line, err_info):
         obj, end = err_info
-        nextline = line[end:]
+        nextline = line[end:].strip()
+        nextchar = nextline[:1]
         left = patch_left_object_and_array(nextline)
+        # ??
+        if left == "":
+            if nextchar == ",":
+                left = "["
+            elif nextchar == ":" and isinstance(obj, basestring):
+                left = "{"
+
         new_line = left + line[:end] + nextline
         return False, new_line
 

@@ -22,7 +22,7 @@ class JSONFixer(object):
             pass
 
         ok, new_line = self.fixwithtry(line)
-        return FixResult(success=True, line=new_line, origin=False)
+        return FixResult(success=ok, line=new_line, origin=False)
 
     def fixwithtry(self, line):
         if self._max_try <= 0:
@@ -140,7 +140,23 @@ class JSONFixer(object):
         # 1. }]
         # 2. ]}
         # 3. constans
-        return False, line
+        # 先 patch 完 {[]}
+        return False, patch_left_object_and_array(line)
+        # return False, line
+
+
+def patch_left_object_and_array(line):
+    # '}]{[' --> '[{}]{['
+    pairs = {'}': '{', ']': '['}
+    breaks = '{['
+    left = ""
+    for char in line:
+        if char in breaks:
+            break
+        if char in pairs:
+            left = pairs[char] + left
+
+    return left + line
 
 
 def insert_line(line, value, pos, end=None):

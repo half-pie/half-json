@@ -21,12 +21,13 @@ def fixjson():
             if not line:
                 continue
             total += 1
-            ok, new_line = fixer.fix(line)
-            if ok:
-                outf.write(new_line + "\n")
-                hit += 1
+            result = fixer.fix(line)
+            if result.success:
+                outf.write(result.line + "\n")
+                if not result.origin:
+                    hit += 1
             else:
-                print(ok, line, new_line)
+                print(result)
         except Exception as e:
             print(e, line)
     print("total is {} and hit {} --> ratio:{} \n".format(total, hit, hit * 1.0 / total))

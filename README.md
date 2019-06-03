@@ -1,3 +1,17 @@
+## Usage
+
+```python
+In [1]: from half_json.core import JSONFixer
+
+In [2]: f = JSONFixer()
+
+In [3]: f.fix('[{')
+Out[3]: FixResult(success=True, line='[{}]', origin=False)
+
+In [4]: f.fix('{"a')
+Out[4]: FixResult(success=True, line='{"a":null}', origin=False)
+```
+
 ## 目标
 
 修复残破的 json

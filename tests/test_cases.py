@@ -78,3 +78,9 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"title": "Center ","ADVANCE":", ","text": "Business.English."}', newline)
+
+    def test_case_miss_key(self):
+        line = '{['
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"":[]}', newline)

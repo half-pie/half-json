@@ -75,6 +75,9 @@ class JSONFixer(object):
             # fix-error
             if lastchar == "," and nextchar == "}":
                 return False, remove_line(line, pos - 1, pos)
+            # {[ or {"a":1,[ --> "":[
+            if nextchar == "[":
+                return False, insert_line(line, "\"\":", pos)
             # dosomething
             # if lastchar == "{":
             return False, insert_line(line, "\"", pos)
@@ -133,7 +136,10 @@ class JSONFixer(object):
         return False, line
 
     def patch_stop_iteration(self, line):
-        # TODO StopIteration
+        # TODO fix
+        # 1. }]
+        # 2. ]}
+        # 3. constans
         return False, line
 
 

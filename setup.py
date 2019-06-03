@@ -12,10 +12,10 @@ with io.open('README.md', encoding='utf-8') as f:
 
 
 setup(
-    name='halfjson',
+    name='jsonfixer',
     version='0.1.2',
     url='https://github.com/half-pie/half-json',
-    description='A command tool/package fix invalid json: broken-json / truncated-json.',
+    description='jsonfixer: fix invalid json: broken-json / truncated-json.',
     long_description=readme,
     author='alingse',
     author_email='alingse@foxmail.com',

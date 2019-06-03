@@ -14,7 +14,7 @@ script:
     - nosetests --cover-package=half_json --with-coverage
     - python setup.py install
     - jsonfixer checks/online.json checks/online.fix.json
-    - ./checks/runtest.sh
+    - cd checks && ./runtest.sh
 
 after_success:
   - coveralls

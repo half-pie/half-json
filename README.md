@@ -54,5 +54,4 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 
 ## BadCase
 
-1. {}}
-2.
+1. 1, [""], -1]

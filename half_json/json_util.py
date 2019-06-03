@@ -127,9 +127,9 @@ DecodeResult = namedtuple('DecodeResult', ['success', 'exception', 'err_info'])
 def decode_line(line):
     # 暂时只考虑 1 行的情况
     try:
-        _, end = decoder.scan_once(line, 0)
+        obj, end = decoder.scan_once(line, 0)
         ok = end == len(line)
-        return DecodeResult(success=ok, exception=None, err_info=None)
+        return DecodeResult(success=ok, exception=None, err_info=(obj, end))
     except StopIteration as e:
         return DecodeResult(success=False, exception=e, err_info=None)
     except ValueError as e:

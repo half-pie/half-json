@@ -37,6 +37,7 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 7. 0.60  , 0.58             # 去掉了空行
 8. 0.6971, 0.6969, 0.6984   # 增加处理 StopIteration
 9. 0.7428, 0.7383, 0.7427   # 增加处理 half parse
+10. 0.7617,0.7631, 0.7558   # 细化处理 half parse
 
 ## 目前的缺点 && 发现
 
@@ -46,6 +47,9 @@ seq 1 10|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}
 4. 还不支持回溯 --> [{]
 5. 同一个 case, 处理空白的情况
 6. 也许可以统计 [] {} "" 的配合情况
+7. 突然想到, 应该反思一下, 这个是一个fixer, 而不是一个将任何字符串都转为 json 的东西
+   应该明确 JSONFixer 的能力范围, 对 runratio.sh 也应该比较前后两个的 json 相似程度。
+   (听起来像无能者的辩白?)
 
 ## TODO
 

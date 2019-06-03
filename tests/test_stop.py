@@ -42,3 +42,15 @@ class TestOtherCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"":[]}', newline)
+
+    def test_patch_half_array_with_coma(self):
+        line = '1, [""], -1]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[1, [""], -1]', newline)
+
+    def test_patch_half_object_with_colon(self):
+        line = '"a":'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"a":null}', newline)

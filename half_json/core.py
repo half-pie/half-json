@@ -11,8 +11,9 @@ FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
 
 class JSONFixer(object):
 
-    def __init__(self, max_try=20):
+    def __init__(self, max_try=20, max_stack=3):
         self._max_try = max_try
+        self._max_stack = max_stack
 
     def fix(self, line):
         try:
@@ -27,10 +28,16 @@ class JSONFixer(object):
     def fixwithtry(self, line):
         if self._max_try <= 0:
             return False, line
-        for _ in range(self._max_try):
+
+        # record
+        self.fix_stack = []
+        for i in range(self._max_try):
+            self.fix_stack.append(line)
+
             ok, line = self.patch_line(line)
             if ok:
                 break
+
         return ok, line
 
     def patch_line(self, line):
@@ -145,7 +152,12 @@ class JSONFixer(object):
         # 2. ]}
         # 3. constans
         # 先 patch 完 {[]}
-        left = patch_left_object_and_array(line)
+        left = patch_lastest_left_object_and_array(line)
+        if left == "":
+            last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
+            if last_notfix:
+                left = patch_guess_left(line)
+
         new_line = left + line
         return False, new_line
 
@@ -153,19 +165,24 @@ class JSONFixer(object):
         obj, end = err_info
         nextline = line[end:].strip()
         nextchar = nextline[:1]
-        left = patch_left_object_and_array(nextline)
+        left = patch_lastest_left_object_and_array(nextline)
         # ??
         if left == "":
             if nextchar == ",":
                 left = "["
             elif nextchar == ":" and isinstance(obj, basestring):
                 left = "{"
+            else:
+                last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
+                if last_notfix:
+                    left = patch_guess_left(nextline)
 
         new_line = left + line[:end] + nextline
         return False, new_line
 
 
-def patch_left_object_and_array(line):
+# TODO better name
+def patch_lastest_left_object_and_array(line):
     # '}]{[' --> '[{}]{['
     pairs = {'}': '{', ']': '['}
     breaks = '{['
@@ -177,6 +194,21 @@ def patch_left_object_and_array(line):
             left = pairs[char] + left
 
     return left
+
+
+# TODO 改成 lastest
+# {}}]]]] --> { not [
+def patch_guess_left(line):
+    miss_object = line.count('}') - line.count('{')
+    miss_array = line.count(']') - line.count('[')
+    if miss_object == miss_array == 0:
+        if line[-1:] == '"' and line.count('"') == 1:
+            return '"'
+    elif miss_object >= miss_array:
+        return '{'
+    else:
+        return '['
+    return ''
 
 
 def insert_line(line, value, pos, end=None):

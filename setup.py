@@ -7,15 +7,16 @@ import io
 from setuptools import setup
 
 
-with io.open('README.md', encoding='utf-8') as f:
+with io.open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
 
 setup(
     name='jsonfixer',
-    version='0.1.4-b2',
+    version='0.1.4b2',
     url='https://github.com/half-pie/half-json',
     description='jsonfixer: fix invalid json: broken-json / truncated-json.',
+    long_description_content_type='text/x-rst',
     long_description=readme,
     author='alingse',
     author_email='alingse@foxmail.com',

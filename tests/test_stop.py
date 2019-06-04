@@ -60,3 +60,9 @@ class TestOtherCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"a":null}', newline)
+
+    def test_patch_many_half_object(self):
+        line = '{}[]{}}]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[{"":{},"":[],"":{}}]', newline)

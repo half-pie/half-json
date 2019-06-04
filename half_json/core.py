@@ -152,7 +152,12 @@ class JSONFixer(object):
         # 2. ]}
         # 3. constans
         # 先 patch 完 {[]}
-        left = patch_left_object_and_array(line)
+        left = patch_lastest_left_object_and_array(line)
+        if left == "":
+            last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
+            if last_notfix:
+                left = patch_guess_left(line)
+
         new_line = left + line
         return False, new_line
 
@@ -167,14 +172,16 @@ class JSONFixer(object):
                 left = "["
             elif nextchar == ":" and isinstance(obj, basestring):
                 left = "{"
-            # WTF
-            elif len(self.fix_stack) >= 2 and self.fix_stack[-2] == line:
-                left = patch_left_object_and_array(nextline)
+            else:
+                last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
+                if last_notfix:
+                    left = patch_guess_left(nextline)
 
         new_line = left + line[:end] + nextline
         return False, new_line
 
 
+# TODO better name
 def patch_lastest_left_object_and_array(line):
     # '}]{[' --> '[{}]{['
     pairs = {'}': '{', ']': '['}
@@ -189,11 +196,14 @@ def patch_lastest_left_object_and_array(line):
     return left
 
 
-def patch_left_object_and_array(line):
+# TODO 改成 lastest
+# {}}]]]] --> { not [
+def patch_guess_left(line):
     miss_object = line.count('}') - line.count('{')
     miss_array = line.count(']') - line.count('[')
     if miss_object == miss_array == 0:
-        return ""
+        if line[-1:] == '"' and line.count('"') == 1:
+            return '"'
     if miss_object >= miss_array:
         return '{'
     return '['

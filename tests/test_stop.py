@@ -66,3 +66,9 @@ class TestOtherCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('[{"":{},"":[],"":{}}]', newline)
+
+    def test_patch_string(self):
+        line = 'E"'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('"E"', newline)

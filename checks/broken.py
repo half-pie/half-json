@@ -6,6 +6,7 @@ import random
 
 def borken(s):
     idx = random.randint(0, len(s) + 1)
+    # TODO add count
     return s[:idx] + s[idx + 1:]
 
 
@@ -23,8 +24,11 @@ def main(inflie, outfile):
             try:
                 json.loads(new_line)
             except Exception:
-                # only broken
-                outf.write(new_line)
+                out = {
+                    'origin': line,
+                    'broken': new_line
+                }
+                outf.write(json.dumps(out))
                 outf.write('\n')
 
     inf.close()

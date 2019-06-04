@@ -204,9 +204,11 @@ def patch_guess_left(line):
     if miss_object == miss_array == 0:
         if line[-1:] == '"' and line.count('"') == 1:
             return '"'
-    if miss_object >= miss_array:
+    elif miss_object >= miss_array:
         return '{'
-    return '['
+    else:
+        return '['
+    return ''
 
 
 def insert_line(line, value, pos, end=None):

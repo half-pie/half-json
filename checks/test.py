@@ -7,6 +7,10 @@ from half_json.core import JSONFixer
 f = JSONFixer(100)
 
 
+def json_equal(line, origin):
+    return json.loads(line) == json.loads(origin)
+
+
 def main(inflie, outfile):
     inf = open(inflie, 'r')
     outf = open(outfile, 'w')
@@ -20,7 +24,9 @@ def main(inflie, outfile):
         result = f.fix(info['broken'])
         info['fixed'] = result.success
         info['fix'] = result.line
-        info['hited'] = result.line == info['origin']
+        info['hited'] = False
+        if info['fixed']:
+            info['hited'] = json_equal(result.line, info['origin'])
 
         outf.write(json.dumps(info))
         outf.write('\n')

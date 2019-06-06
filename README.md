@@ -78,6 +78,7 @@ TSR : run test.sh show.sh ratio.sh
 7. 突然想到, 应该反思一下, 这个是一个fixer, 而不是一个将任何字符串都转为 json 的东西
    应该明确 JSONFixer 的能力范围, 对 runratio.sh 也应该比较前后两个的 json 相似程度。
    (听起来像无能者的辩白?)
+8. 也需要吧 parser 也做成 stack 这样可以解决 ["a] --> ["a"] 这样的 case
 
 1. 考虑分支回溯的方式来试探
 2. 解析缺失的 JSON 常量

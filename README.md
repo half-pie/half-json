@@ -65,7 +65,8 @@ TSR : run test.sh show.sh ratio.sh
 ./runratio.sh hit
 ```
 ```
-1.  0.5610, 0.5563, 0.5529   # fix :} --> :null}
+1. 0.5610, 0.5563, 0.5529   # origin
+2. 0.5593, 0.5532, 0.5587   # fix :} --> :null}
 ```
 
 # TODO

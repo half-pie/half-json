@@ -103,6 +103,9 @@ class JSONFixer(object):
                 if lastchar == "{":
                     return False, insert_line(line, "}", pos)
                 return False, insert_line(line, "null}", pos)
+            # :} --> :null}
+            if nextchar == "}":
+                return False, insert_line(line, "null", pos)
             # 08.2
             return False, insert_line(line, "\"", pos)
         # 09

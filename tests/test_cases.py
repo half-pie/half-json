@@ -84,3 +84,21 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"":[]}', newline)
+
+    def test_object_miss_value(self):
+        line = '{"V":}'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"V":null}', newline)
+
+    def test_array_miss_value(self):
+        line = '[,]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[]', newline)
+
+    def test_array_miss_value_2(self):
+        line = '[null,]'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('[null]', newline)

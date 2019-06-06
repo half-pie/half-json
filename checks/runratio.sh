@@ -1,2 +1,7 @@
 #!/bin/bash
-seq 1 20|xargs -I {} ./runtest.sh|grep ratio: |awk '{t += $3; h+= $6}{print h/t}'|tail -1
+mode=$1
+if [ ! $mode ]; then
+  mode=fix
+fi
+seq 1 20|xargs -P 4 -I {} ./runtest.sh {}|grep ratio:|grep $mode|awk -v mode="$mode" '{t += $3}END{printf("%s: %f \n", mode, t/NR)}'
+rm random.*

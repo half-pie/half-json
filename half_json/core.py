@@ -115,11 +115,14 @@ class JSONFixer(object):
             return False, insert_line(line, ",", pos)
         # 11
         if error == errors.ArrayExceptObject:
-            # fix-error
+            # fix [, --> [
             if lastchar == "[" and nextchar == ",":
                 return False, remove_line(line, pos, pos + 1)
             if nextchar == ",":
                 return False, insert_line(line, "null", pos)
+            # ,] --> ]
+            if nextchar == "]":
+                return False, remove_line(line, pos - 1, pos)
             # 11.1
             if nextchar == "":
                 # quick

@@ -77,6 +77,7 @@ def errmsg_inv(e):
     parser = e.__dict__.get("parser", "")
 
     result = {
+        "parsers": e.__dict__.get("parsers", []),
         "error": errors.get_decode_error(parser, errmsg),
         "lineno": int(numbers[0]),
         "colno": int(numbers[1]),
@@ -101,6 +102,10 @@ def record_parser_name(parser):
         except Exception as e:
             if "parser" not in e.__dict__:
                 e.__dict__["parser"] = parser.__name__
+            if "parsers" not in e.__dict__:
+                e.__dict__["parsers"] = []
+            e.__dict__["parsers"].append(parser.__name__)
+
             raise e
     return new_parser
 

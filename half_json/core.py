@@ -5,7 +5,6 @@ from collections import namedtuple
 from half_json.json_util import decode_line
 from half_json.json_util import errors
 
-
 FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
 
 
@@ -29,15 +28,21 @@ class JSONFixer(object):
         if self._max_try <= 0:
             return False, line
 
-        # record
         self.fix_stack = []
+        self.last_fix = None
+
         for i in range(self._max_try):
-            self.fix_stack.append(line)
 
-            ok, line = self.patch_line(line)
+            ok, new_line = self.patch_line(line)
             if ok:
-                break
+                return ok, new_line
 
+            self.last_fix = line != new_line
+            if self.last_fix:
+                self.fix_stack.insert(0, new_line)
+                self.fix_stack = self.fix_stack[:self._max_stack]
+
+            line = new_line
         return ok, line
 
     def patch_line(self, line):
@@ -160,8 +165,7 @@ class JSONFixer(object):
         # 先 patch 完 {[]}
         left = patch_lastest_left_object_and_array(line)
         if left == "":
-            last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
-            if last_notfix:
+            if not self.last_fix:
                 left = patch_guess_left(line)
 
         new_line = left + line
@@ -179,8 +183,7 @@ class JSONFixer(object):
             elif nextchar == ":" and isinstance(obj, basestring):
                 left = "{"
             else:
-                last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
-                if last_notfix:
+                if not self.last_fix:
                     left = patch_guess_left(nextline)
 
         new_line = left + line[:end] + nextline

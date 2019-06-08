@@ -12,3 +12,9 @@ class TestJSCase(unittest.TestCase):
         ok, newline, _ = JSONFixer(js_style=True).fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"a":1, "b":{"c":3}}', newline)
+
+    def test_litte_key(self):
+        line = "{'a':1, 'b':{'c':[]}}"
+        ok, newline, _ = JSONFixer(js_style=True).fix(line)
+        self.assertTrue(ok)
+        self.assertEqual('{"a":1, "b":{"c":[]}}', newline)

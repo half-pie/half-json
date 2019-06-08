@@ -88,6 +88,14 @@ class JSONFixer(object):
             if nextchar in "[{":
                 return False, insert_line(line, '"":', pos)
             if self._js_style:
+                # find 'abc'
+                if nextchar == "'":
+                    nextline = remove_line(nextline, 0, 1)
+                    idx = nextline.find(':')
+                    if idx != -1 and idx != 0 and nextline[idx - 1] == "'":
+                        nextline = remove_line(nextline, idx - 1, idx)
+
+                    return False, lastline + nextline
                 # abc:1 --> "aabc":1
                 idx = nextline.find(':')
                 if idx != -1:

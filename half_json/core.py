@@ -11,9 +11,10 @@ FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
 
 class JSONFixer(object):
 
-    def __init__(self, max_try=20, max_stack=3):
+    def __init__(self, max_try=20, max_stack=3, js_style=False):
         self._max_try = max_try
         self._max_stack = max_stack
+        self._js_style = js_style
 
     def fix(self, line):
         try:
@@ -29,15 +30,21 @@ class JSONFixer(object):
         if self._max_try <= 0:
             return False, line
 
-        # record
         self.fix_stack = []
+        self.last_fix = None
+
         for i in range(self._max_try):
-            self.fix_stack.append(line)
 
-            ok, line = self.patch_line(line)
+            ok, new_line = self.patch_line(line)
             if ok:
-                break
+                return ok, new_line
 
+            self.last_fix = line != new_line
+            if self.last_fix:
+                self.fix_stack.insert(0, new_line)
+                self.fix_stack = self.fix_stack[:self._max_stack]
+
+            line = new_line
         return ok, line
 
     def patch_line(self, line):
@@ -64,95 +71,77 @@ class JSONFixer(object):
         pos = err_info["pos"]
         nextchar = line[pos: pos + 1]
         lastchar = line[pos - 1: pos]
-        # TODO
-        # nextline = line[pos:]
-        # lastline = line[:pos]
+        nextline = line[pos:]
+        lastline = line[:pos]
 
-        # 02
         if error == errors.StringUnterminatedString:
-            # TODO resolve "abc --> "abc"
-            return False, insert_line(line, "\"", len(line))
-        # 06
+            return False, insert_line(line, '"', len(line))
         if error == errors.ObjectExceptKey:
-            # quick
             if nextchar == "":
-                return False, insert_line(line, "}", pos)
-            # miss key
+                return False, insert_line(line, '}', pos)
             if nextchar == ":":
-                return False, insert_line(line, "\"\"", pos)
-            # miss a pair
-            if nextchar == "," and lastchar in "{,":
+                return False, insert_line(line, '""', pos)
+            if lastchar in "{," and nextchar == ",":
                 return False, remove_line(line, pos, pos + 1)
-            # fix-error
             if lastchar == "," and nextchar == "}":
                 return False, remove_line(line, pos - 1, pos)
-            # {[ or {"a":1,[ --> "":[
             if nextchar in "[{":
-                return False, insert_line(line, "\"\":", pos)
-            # dosomething
-            # if lastchar == "{":
-            return False, insert_line(line, "\"", pos)
-        # 07
+                return False, insert_line(line, '"":', pos)
+            if self._js_style:
+                # find 'abc'
+                if nextchar == "'":
+                    nextline = remove_line(nextline, 0, 1)
+                    idx = nextline.find(':')
+                    if idx != -1 and idx != 0 and nextline[idx - 1] == "'":
+                        nextline = remove_line(nextline, idx - 1, idx)
+
+                    return False, lastline + nextline
+                # abc:1 --> "aabc":1
+                idx = nextline.find(':')
+                if idx != -1:
+                    line = lastline + insert_line(nextline, '"', idx)
+                    return False, insert_line(line, '"', pos)
+            # TODO process more case "
+            return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptColon:
-            return False, insert_line(line, ":", pos)
-        # 08
+            return False, insert_line(line, ':', pos)
         if error == errors.ObjectExceptObject:
-            # 08.1
             if nextchar == "":
-                # quick
                 if lastchar == "{":
                     return False, insert_line(line, "}", pos)
                 return False, insert_line(line, "null}", pos)
-            # :} --> :null}
             if nextchar == "}":
                 return False, insert_line(line, "null", pos)
-            # 08.2
-            return False, insert_line(line, "\"", pos)
-        # 09
+            # TODO guess more
+            return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptComma:
             if nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
-        # 11
         if error == errors.ArrayExceptObject:
-            # fix [, --> [
-            if lastchar == "[" and nextchar == ",":
+            if nextchar == "," and lastchar == "[":
                 return False, remove_line(line, pos, pos + 1)
             if nextchar == ",":
                 return False, insert_line(line, "null", pos)
-            # ,] --> ]
             if nextchar == "]":
                 return False, remove_line(line, pos - 1, pos)
-            # 11.1
             if nextchar == "":
-                # quick
                 if lastchar == "[":
                     return False, insert_line(line, "]", pos)
                 return False, insert_line(line, "null]", pos)
-            # 11.2
+            # TODO guess more?
             return False, insert_line(line, "{", pos)
-            # 也许可以删掉前面的 , 补一个]
-        # 12
         if error == errors.ArrayExceptComma:
-            """
-            code:
-            end += 1
-            if nextchar == ']':
-                break
-            elif nextchar != ',':
-                raise ValueError(errmsg("Expecting ',' delimiter", s, end))
-            """
             pos = pos - 1
             nextchar = line[pos: pos + 1]
-            # 11.1
             if nextchar == "":
                 return False, insert_line(line, "]", pos)
-            # 11.2
             return False, insert_line(line, ",", pos)
-        # unknonwn
+        # TODO unknonwn
         return False, line
 
     def patch_stop_iteration(self, line):
+        # TODO clean
         # TODO fix
         # 1. }]
         # 2. ]}
@@ -160,8 +149,7 @@ class JSONFixer(object):
         # 先 patch 完 {[]}
         left = patch_lastest_left_object_and_array(line)
         if left == "":
-            last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
-            if last_notfix:
+            if not self.last_fix:
                 left = patch_guess_left(line)
 
         new_line = left + line
@@ -179,8 +167,7 @@ class JSONFixer(object):
             elif nextchar == ":" and isinstance(obj, basestring):
                 left = "{"
             else:
-                last_notfix = (len(self.fix_stack) >= 2 and self.fix_stack[-2] == line)
-                if last_notfix:
+                if not self.last_fix:
                     left = patch_guess_left(nextline)
 
         new_line = left + line[:end] + nextline
@@ -202,8 +189,9 @@ def patch_lastest_left_object_and_array(line):
     return left
 
 
+# TODO better name
 # TODO 改成 lastest
-# {}}]]]] --> { not [
+# TODO {}}]]]] --> { not [
 def patch_guess_left(line):
     miss_object = line.count('}') - line.count('{')
     miss_array = line.count(']') - line.count('[')

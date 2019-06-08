@@ -11,9 +11,10 @@ FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
 
 class JSONFixer(object):
 
-    def __init__(self, max_try=20, max_stack=3):
+    def __init__(self, max_try=20, max_stack=3, js_style=False):
         self._max_try = max_try
         self._max_stack = max_stack
+        self._js_style = js_style
 
     def fix(self, line):
         try:
@@ -70,6 +71,8 @@ class JSONFixer(object):
         pos = err_info["pos"]
         nextchar = line[pos: pos + 1]
         lastchar = line[pos - 1: pos]
+        nextline = line[pos:]
+        lastline = line[:pos]
 
         if error == errors.StringUnterminatedString:
             return False, insert_line(line, '"', len(line))
@@ -84,8 +87,13 @@ class JSONFixer(object):
                 return False, remove_line(line, pos - 1, pos)
             if nextchar in "[{":
                 return False, insert_line(line, '"":', pos)
-
-            # TODO process "
+            if self._js_style:
+                # abc:1 --> "aabc":1
+                idx = nextline.find(':')
+                if idx != -1:
+                    line = lastline + insert_line(nextline, '"', idx)
+                    return False, insert_line(line, '"', pos)
+            # TODO process more case "
             return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptColon:
             return False, insert_line(line, ':', pos)

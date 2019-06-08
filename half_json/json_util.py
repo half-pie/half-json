@@ -130,7 +130,6 @@ DecodeResult = namedtuple('DecodeResult', ['success', 'exception', 'err_info'])
 
 
 def decode_line(line):
-    # 暂时只考虑 1 行的情况
     try:
         obj, end = decoder.scan_once(line, 0)
         ok = end == len(line)

@@ -5,6 +5,7 @@ from collections import namedtuple
 from half_json.json_util import decode_line
 from half_json.json_util import errors
 
+
 FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
 
 
@@ -69,95 +70,62 @@ class JSONFixer(object):
         pos = err_info["pos"]
         nextchar = line[pos: pos + 1]
         lastchar = line[pos - 1: pos]
-        # TODO
-        # nextline = line[pos:]
-        # lastline = line[:pos]
 
-        # 02
         if error == errors.StringUnterminatedString:
-            # TODO resolve "abc --> "abc"
-            return False, insert_line(line, "\"", len(line))
-        # 06
+            return False, insert_line(line, '"', len(line))
         if error == errors.ObjectExceptKey:
-            # quick
             if nextchar == "":
-                return False, insert_line(line, "}", pos)
-            # miss key
+                return False, insert_line(line, '}', pos)
             if nextchar == ":":
-                return False, insert_line(line, "\"\"", pos)
-            # miss a pair
-            if nextchar == "," and lastchar in "{,":
+                return False, insert_line(line, '""', pos)
+            if lastchar in "{," and nextchar == ",":
                 return False, remove_line(line, pos, pos + 1)
-            # fix-error
             if lastchar == "," and nextchar == "}":
                 return False, remove_line(line, pos - 1, pos)
-            # {[ or {"a":1,[ --> "":[
             if nextchar in "[{":
-                return False, insert_line(line, "\"\":", pos)
-            # dosomething
-            # if lastchar == "{":
-            return False, insert_line(line, "\"", pos)
-        # 07
+                return False, insert_line(line, '"":', pos)
+
+            # TODO process "
+            return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptColon:
-            return False, insert_line(line, ":", pos)
-        # 08
+            return False, insert_line(line, ':', pos)
         if error == errors.ObjectExceptObject:
-            # 08.1
             if nextchar == "":
-                # quick
                 if lastchar == "{":
                     return False, insert_line(line, "}", pos)
                 return False, insert_line(line, "null}", pos)
-            # :} --> :null}
             if nextchar == "}":
                 return False, insert_line(line, "null", pos)
-            # 08.2
-            return False, insert_line(line, "\"", pos)
-        # 09
+            # TODO guess more
+            return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptComma:
             if nextchar == "":
                 return False, insert_line(line, "}", pos)
             return False, insert_line(line, ",", pos)
-        # 11
         if error == errors.ArrayExceptObject:
-            # fix [, --> [
-            if lastchar == "[" and nextchar == ",":
+            if nextchar == "," and lastchar == "[":
                 return False, remove_line(line, pos, pos + 1)
             if nextchar == ",":
                 return False, insert_line(line, "null", pos)
-            # ,] --> ]
             if nextchar == "]":
                 return False, remove_line(line, pos - 1, pos)
-            # 11.1
             if nextchar == "":
-                # quick
                 if lastchar == "[":
                     return False, insert_line(line, "]", pos)
                 return False, insert_line(line, "null]", pos)
-            # 11.2
+            # TODO guess more?
             return False, insert_line(line, "{", pos)
-            # 也许可以删掉前面的 , 补一个]
-        # 12
         if error == errors.ArrayExceptComma:
-            """
-            code:
-            end += 1
-            if nextchar == ']':
-                break
-            elif nextchar != ',':
-                raise ValueError(errmsg("Expecting ',' delimiter", s, end))
-            """
             pos = pos - 1
             nextchar = line[pos: pos + 1]
-            # 11.1
             if nextchar == "":
                 return False, insert_line(line, "]", pos)
-            # 11.2
             return False, insert_line(line, ",", pos)
-        # unknonwn
+        # TODO unknonwn
         return False, line
 
     def patch_stop_iteration(self, line):
+        # TODO clean
         # TODO fix
         # 1. }]
         # 2. ]}
@@ -205,8 +173,9 @@ def patch_lastest_left_object_and_array(line):
     return left
 
 
+# TODO better name
 # TODO 改成 lastest
-# {}}]]]] --> { not [
+# TODO {}}]]]] --> { not [
 def patch_guess_left(line):
     miss_object = line.count('}') - line.count('{')
     miss_array = line.count(']') - line.count('[')

@@ -205,6 +205,10 @@ def patch_guess_left(line):
     return ''
 
 
+def guess_constants(line):
+    pass
+
+
 def insert_line(line, value, pos, end=None):
     return line[:pos] + value + line[pos:]
 

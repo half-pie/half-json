@@ -19,6 +19,21 @@ Out[5]: FixResult(success=True, line='{"a":null}', origin=False)
 
 fix invalid/broken/truncated json
 
+
+# 换个思路
+
+昨天看到 simplejson 突然想到,直接把代码拿过来改(MIT)。
+
+就不止可以用异常来推断了, 还有已经解析好的 json object 来辅助。
+
+立即 copy 代码
+
+## 步骤
+
+1. copy simple json 代码
+2. 在抛异常的点，把整个解析栈封装返回
+3. 根据全局信息做 autofix
+
 # 修复原理
 
 1. JSONDecoderError

@@ -164,7 +164,7 @@ class JSONFixer(object):
         if left == "":
             if nextchar == ",":
                 left = "["
-            elif nextchar == ":" and isinstance(obj, basestring):
+            elif nextchar == ":" and isinstance(obj, str):
                 left = "{"
             else:
                 if not self.last_fix:

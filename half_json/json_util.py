@@ -1,11 +1,12 @@
 # coding=utf8
 
 import re
-import json.decoder
 from collections import namedtuple
-from json.decoder import JSONDecoder
-from json.scanner import py_make_scanner
-from json.decoder import py_scanstring
+
+from . import decoder as local_decoder
+from .decoder import JSONDecoder
+from .decoder import py_scanstring
+from .scanner import py_make_scanner
 
 
 class JSONDecodeError(object):
@@ -111,7 +112,7 @@ def record_parser_name(parser):
 
 
 def make_decoder():
-    json.decoder.scanstring = record_parser_name(py_scanstring)
+    local_decoder.py_scanstring = record_parser_name(py_scanstring)
 
     decoder = JSONDecoder()
     decoder.parse_object = record_parser_name(decoder.parse_object)

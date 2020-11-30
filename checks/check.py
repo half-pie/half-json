@@ -36,9 +36,10 @@ def main(inflie, outfile):
         if info['hited']:
             hit += 1
         total += 1
-    print 'total: %d fix: %d hit: %d' % (total, fix, hit)
-    print 'fix ratio: %f' % (fix * 1.0 / total)
-    print 'hit ratio: %f' % (hit * 1.0 / total)
+
+    print('total: %d fix: %d hit: %d' % (total, fix, hit))
+    print('fix ratio: %f' % (fix * 1.0 / total))
+    print('hit ratio: %f' % (hit * 1.0 / total))
 
     inf.close()
     outf.close()

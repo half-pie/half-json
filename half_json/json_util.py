@@ -69,41 +69,18 @@ class errors(object):
 
 
 def errmsg_inv(e):
-    assert isinstance(e, ValueError)
-
+    assert isinstance(e, PyJSONDecodeError)
     parser = e.__dict__.get("parser", "")
-    if isinstance(e, PyJSONDecodeError):
-        errmsg = e.msg
-        localerr = errors.get_decode_error(parser, errmsg)
-        result = {
-            "parsers": e.__dict__.get("parsers", []),
-            "error": localerr,
-            "lineno": e.lineno,
-            "colno": e.colno,
-            "pos": e.pos,
-        }
-        return result
-    else:
-        message = e.message
-        idx = message.rindex(':')
-        errmsg, left = message[:idx], message[idx + 1:]
-        numbers = re.compile(r'\d+').findall(left)
-        result = {
-            "parsers": e.__dict__.get("parsers", []),
-            "error": errors.get_decode_error(parser, errmsg),
-            "lineno": int(numbers[0]),
-            "colno": int(numbers[1]),
-        }
-
-        if len(numbers) == 3:
-            result["pos"] = int(numbers[2])
-
-        if len(numbers) > 3:
-            result["endlineno"] = int(numbers[2])
-            result["endcolno"] = int(numbers[3])
-            result["pos"] = int(numbers[4])
-            result["end"] = int(numbers[5])
-        return result
+    errmsg = e.msg
+    localerr = errors.get_decode_error(parser, errmsg)
+    result = {
+        "parsers": e.__dict__.get("parsers", []),
+        "error": localerr,
+        "lineno": e.lineno,
+        "colno": e.colno,
+        "pos": e.pos,
+    }
+    return result
 
 
 def record_parser_name(parser):

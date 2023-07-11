@@ -6,6 +6,7 @@ from collections import namedtuple
 from json.decoder import JSONDecoder
 from json.scanner import py_make_scanner
 from json.decoder import py_scanstring
+from json.decoder import JSONDecodeError as PyJSONDecodeError
 
 
 class JSONDecodeError(object):
@@ -26,11 +27,11 @@ class errors(object):
     StringInvalidControlCharacter = JSONDecodeError("py_scanstring", "Invalid control character")
     StringInvalidEscape = JSONDecodeError("py_scanstring", "Invalid \\escape")
     ObjectExceptColon = JSONDecodeError("JSONObject", "Expecting ':' delimiter")
-    ObjectExceptObject = JSONDecodeError("JSONObject", "Expecting object")
+    ObjectExceptObject = JSONDecodeError("JSONObject", "Expecting value")
     # 2 different case
     ObjectExceptKey = JSONDecodeError("JSONObject", "Expecting property name enclosed in double quotes")
     ObjectExceptComma = JSONDecodeError("JSONObject", "Expecting ',' delimiter")
-    ArrayExceptObject = JSONDecodeError("JSONArray", "Expecting object")
+    ArrayExceptObject = JSONDecodeError("JSONArray", "Expecting value")
     ArrayExceptComma = JSONDecodeError("JSONArray", "Expecting ',' delimiter")
 
     @classmethod
@@ -70,28 +71,39 @@ class errors(object):
 def errmsg_inv(e):
     assert isinstance(e, ValueError)
 
-    message = e.message
-    idx = message.rindex(':')
-    errmsg, left = message[:idx], message[idx + 1:]
-    numbers = re.compile(r'\d+').findall(left)
     parser = e.__dict__.get("parser", "")
+    if isinstance(e, PyJSONDecodeError):
+        errmsg = e.msg
+        localerr = errors.get_decode_error(parser, errmsg)
+        result = {
+            "parsers": e.__dict__.get("parsers", []),
+            "error": localerr,
+            "lineno": e.lineno,
+            "colno": e.colno,
+            "pos": e.pos,
+        }
+        return result
+    else:
+        message = e.message
+        idx = message.rindex(':')
+        errmsg, left = message[:idx], message[idx + 1:]
+        numbers = re.compile(r'\d+').findall(left)
+        result = {
+            "parsers": e.__dict__.get("parsers", []),
+            "error": errors.get_decode_error(parser, errmsg),
+            "lineno": int(numbers[0]),
+            "colno": int(numbers[1]),
+        }
 
-    result = {
-        "parsers": e.__dict__.get("parsers", []),
-        "error": errors.get_decode_error(parser, errmsg),
-        "lineno": int(numbers[0]),
-        "colno": int(numbers[1]),
-    }
+        if len(numbers) == 3:
+            result["pos"] = int(numbers[2])
 
-    if len(numbers) == 3:
-        result["pos"] = int(numbers[2])
-
-    if len(numbers) > 3:
-        result["endlineno"] = int(numbers[2])
-        result["endcolno"] = int(numbers[3])
-        result["pos"] = int(numbers[4])
-        result["end"] = int(numbers[5])
-    return result
+        if len(numbers) > 3:
+            result["endlineno"] = int(numbers[2])
+            result["endcolno"] = int(numbers[3])
+            result["pos"] = int(numbers[4])
+            result["end"] = int(numbers[5])
+        return result
 
 
 def record_parser_name(parser):

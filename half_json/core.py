@@ -132,9 +132,7 @@ class JSONFixer(object):
             # TODO guess more?
             return False, insert_line(line, "{", pos)
         if error == errors.ArrayExceptComma:
-            pos = pos - 1
-            nextchar = line[pos: pos + 1]
-            if nextchar == "":
+            if len(line) == pos:
                 return False, insert_line(line, "]", pos)
             return False, insert_line(line, ",", pos)
         # TODO unknonwn
@@ -164,7 +162,7 @@ class JSONFixer(object):
         if left == "":
             if nextchar == ",":
                 left = "["
-            elif nextchar == ":" and isinstance(obj, basestring):
+            elif nextchar == ":" and isinstance(obj, str):
                 left = "{"
             else:
                 if not self.last_fix:

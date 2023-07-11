@@ -84,7 +84,6 @@ def errmsg_inv(e):
 
 
 def record_parser_name(parser):
-
     def new_parser(*args, **kwargs):
         try:
             return parser(*args, **kwargs)
@@ -94,7 +93,6 @@ def record_parser_name(parser):
             if "parsers" not in e.__dict__:
                 e.__dict__["parsers"] = []
             e.__dict__["parsers"].append(parser.__name__)
-
             raise e
     return new_parser
 

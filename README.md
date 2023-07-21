@@ -1,3 +1,8 @@
+# Install
+
+```bash
+pip install jsonfixer
+```
 # Usage
 
 ```python

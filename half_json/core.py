@@ -20,7 +20,7 @@ class JSONFixer(object):
         try:
             json.loads(line)
             return FixResult(success=True, line=line, origin=True)
-        except Exception:
+        except Exception as e:
             pass
 
         ok, new_line = self.fixwithtry(line)
@@ -138,13 +138,19 @@ class JSONFixer(object):
         # TODO unknonwn
         return False, line
 
-    def patch_stop_iteration(self, line):
+    def patch_stop_iteration(self, line: str):
         # TODO clean
         # TODO fix
         # 1. }]
         # 2. ]}
         # 3. constans
+        # 4. -
         # 先 patch 完 {[]}
+        # TODO: process number
+        if line.startswith('-.'):
+            new_line = '-0.' + line[2:]
+            return False, new_line
+        # patch
         left = patch_lastest_left_object_and_array(line)
         if left == "":
             if not self.last_fix:

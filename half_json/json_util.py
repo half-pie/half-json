@@ -1,6 +1,5 @@
 # coding=utf8
 
-import re
 import json.decoder
 from collections import namedtuple
 from json.decoder import JSONDecoder

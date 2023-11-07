@@ -18,7 +18,7 @@ class JSONFixer(object):
 
     def fix(self, line, strict=True):
         try:
-            json.loads(line, strict=True)
+            json.loads(line, strict=strict)
             return FixResult(success=True, line=line, origin=True)
         except Exception as e:
             pass

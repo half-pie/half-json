@@ -16,9 +16,9 @@ class JSONFixer(object):
         self._max_stack = max_stack
         self._js_style = js_style
 
-    def fix(self, line):
+    def fix(self, line, strict=True):
         try:
-            json.loads(line)
+            json.loads(line, strict=True)
             return FixResult(success=True, line=line, origin=True)
         except Exception as e:
             pass

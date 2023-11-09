@@ -1,13 +1,13 @@
 
 [project]
 name = "jsonfixer"
-version = "0.2.0"
+version = "0.2.1"
 description = "jsonfixer: fix invalid json: broken-json / truncated-json."
 authors = [
     {name = "alingse", email = "alingse@foxmail.com"},
 ]
 dependencies = []
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [

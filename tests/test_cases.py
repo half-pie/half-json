@@ -102,3 +102,19 @@ class TestSimpleCase(unittest.TestCase):
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('[null]', newline)
+
+    def test_unstrict_ok(self):
+        line = '{"hello": "wor\nld"}'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertFalse(ok)
+        ok, newline, _ = JSONFixer().fix(line, strict=False)
+        self.assertTrue(ok)
+        self.assertEqual(line, newline)
+
+    def test_unstrict_fix(self):
+        line = '{"hello": "wor\nld"'
+        ok, newline, _ = JSONFixer().fix(line)
+        self.assertFalse(ok)
+        ok, newline, _ = JSONFixer().fix(line, strict=False)
+        self.assertTrue(ok)
+        self.assertEqual('{"hello": "wor\nld"}', newline)

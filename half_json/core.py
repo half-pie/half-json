@@ -20,13 +20,13 @@ class JSONFixer(object):
         try:
             json.loads(line, strict=strict)
             return FixResult(success=True, line=line, origin=True)
-        except Exception as e:
+        except Exception:
             pass
 
-        ok, new_line = self.fixwithtry(line)
+        ok, new_line = self.fixwithtry(line, strict=strict)
         return FixResult(success=ok, line=new_line, origin=False)
 
-    def fixwithtry(self, line):
+    def fixwithtry(self, line, strict=True):
         if self._max_try <= 0:
             return False, line
 
@@ -35,7 +35,7 @@ class JSONFixer(object):
 
         for i in range(self._max_try):
 
-            ok, new_line = self.patch_line(line)
+            ok, new_line = self.patch_line(line, strict=strict)
             if ok:
                 return ok, new_line
 
@@ -47,8 +47,8 @@ class JSONFixer(object):
             line = new_line
         return ok, line
 
-    def patch_line(self, line):
-        result = decode_line(line)
+    def patch_line(self, line, strict=True):
+        result = decode_line(line, strict=strict)
         if result.success:
             return True, line
 

@@ -96,10 +96,10 @@ def record_parser_name(parser):
     return new_parser
 
 
-def make_decoder():
+def make_decoder(strict=True):
     json.decoder.scanstring = record_parser_name(py_scanstring)
 
-    decoder = JSONDecoder()
+    decoder = JSONDecoder(strict=strict)
     decoder.parse_object = record_parser_name(decoder.parse_object)
     decoder.parse_array = record_parser_name(decoder.parse_array)
     decoder.parse_string = record_parser_name(py_scanstring)
@@ -110,14 +110,15 @@ def make_decoder():
 
 
 decoder = make_decoder()
+decoder_unstrict = make_decoder(strict=False)
 
 
 DecodeResult = namedtuple('DecodeResult', ['success', 'exception', 'err_info'])
 
 
-def decode_line(line):
+def decode_line(line, strict=True):
     try:
-        obj, end = decoder.scan_once(line, 0)
+        obj, end = (decoder if strict else decoder_unstrict).scan_once(line, 0)
         ok = end == len(line)
         return DecodeResult(success=ok, exception=None, err_info=(obj, end))
     except StopIteration as e:

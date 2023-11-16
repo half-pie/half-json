@@ -1,15 +1,16 @@
 # coding=utf8
+
 import sys
 
 from half_json.core import JSONFixer
 
 
-def fixjson():
+def fixjson() -> None:
     infile = sys.argv[1]
     outfile = sys.argv[2]
 
-    inf = open(infile, 'r')
-    outf = open(outfile, 'w')
+    inf = open(infile, "r")
+    outf = open(outfile, "w")
 
     total = 0
     hit = 0
@@ -30,6 +31,6 @@ def fixjson():
                 print(result)
         except Exception as e:
             print(e, line)
-    print("total is {} and hit {} --> ratio:{} \n".format(total, hit, hit * 1.0 / total))
+    print(f"total is {total} and hit {hit} --> ratio:{hit * 1.0 / total} \n")
     inf.close()
     outf.close()

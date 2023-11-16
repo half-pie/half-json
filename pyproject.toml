@@ -1,7 +1,7 @@
 
 [project]
 name = "jsonfixer"
-version = "0.2.1"
+version = "0.2.2"
 description = "jsonfixer: fix invalid json: broken-json / truncated-json."
 authors = [
     {name = "alingse", email = "alingse@foxmail.com"},

@@ -1,22 +1,25 @@
 # coding=utf8
 import json
-from collections import namedtuple
+from typing import Any, List, NamedTuple, Optional, Tuple
 
-from half_json.json_util import decode_line
-from half_json.json_util import errors
-
-
-FixResult = namedtuple('FixResult', ['success', 'line', 'origin'])
+from half_json.json_util import decode_line, errors
 
 
-class JSONFixer(object):
+class FixResult(NamedTuple):
+    success: bool
+    line: str
+    origin: bool
 
-    def __init__(self, max_try=20, max_stack=3, js_style=False):
+
+class JSONFixer:
+    def __init__(self, max_try: int = 20, max_stack: int = 3, *, js_style: bool = False) -> None:
         self._max_try = max_try
         self._max_stack = max_stack
         self._js_style = js_style
+        self.last_fix: Optional[bool] = None
+        self.fix_stack: List[str] = []
 
-    def fix(self, line, strict=True):
+    def fix(self, line: str, *, strict: bool = True) -> FixResult:
         try:
             json.loads(line, strict=strict)
             return FixResult(success=True, line=line, origin=True)
@@ -26,15 +29,15 @@ class JSONFixer(object):
         ok, new_line = self.fixwithtry(line, strict=strict)
         return FixResult(success=ok, line=new_line, origin=False)
 
-    def fixwithtry(self, line, strict=True):
+    def fixwithtry(self, line: str, *, strict: bool = True) -> Tuple[bool, str]:
         if self._max_try <= 0:
             return False, line
 
         self.fix_stack = []
         self.last_fix = None
 
-        for i in range(self._max_try):
-
+        ok = False
+        for _ in range(self._max_try):
             ok, new_line = self.patch_line(line, strict=strict)
             if ok:
                 return ok, new_line
@@ -42,12 +45,12 @@ class JSONFixer(object):
             self.last_fix = line != new_line
             if self.last_fix:
                 self.fix_stack.insert(0, new_line)
-                self.fix_stack = self.fix_stack[:self._max_stack]
+                self.fix_stack = self.fix_stack[: self._max_stack]
 
             line = new_line
         return ok, line
 
-    def patch_line(self, line, strict=True):
+    def patch_line(self, line: str, *, strict: bool = True) -> Tuple[bool, str]:
         result = decode_line(line, strict=strict)
         if result.success:
             return True, line
@@ -63,14 +66,14 @@ class JSONFixer(object):
 
         return False, line
 
-    def patch_value_error(self, line, err_info):
+    def patch_value_error(self, line: str, err_info: Any) -> Tuple[bool, str]:
         if err_info["error"] is None:
             return False, line
 
         error = err_info["error"]
         pos = err_info["pos"]
-        nextchar = line[pos: pos + 1]
-        lastchar = line[pos - 1: pos]
+        nextchar = line[pos : pos + 1]
+        lastchar = line[pos - 1 : pos]
         nextline = line[pos:]
         lastline = line[:pos]
 
@@ -78,7 +81,7 @@ class JSONFixer(object):
             return False, insert_line(line, '"', len(line))
         if error == errors.ObjectExceptKey:
             if nextchar == "":
-                return False, insert_line(line, '}', pos)
+                return False, insert_line(line, "}", pos)
             if nextchar == ":":
                 return False, insert_line(line, '""', pos)
             if lastchar in "{," and nextchar == ",":
@@ -91,20 +94,20 @@ class JSONFixer(object):
                 # find 'abc'
                 if nextchar == "'":
                     nextline = remove_line(nextline, 0, 1)
-                    idx = nextline.find(':')
+                    idx = nextline.find(":")
                     if idx != -1 and idx != 0 and nextline[idx - 1] == "'":
                         nextline = remove_line(nextline, idx - 1, idx)
 
                     return False, lastline + nextline
                 # abc:1 --> "aabc":1
-                idx = nextline.find(':')
+                idx = nextline.find(":")
                 if idx != -1:
                     line = lastline + insert_line(nextline, '"', idx)
                     return False, insert_line(line, '"', pos)
             # TODO process more case "
             return False, insert_line(line, '"', pos)
         if error == errors.ObjectExceptColon:
-            return False, insert_line(line, ':', pos)
+            return False, insert_line(line, ":", pos)
         if error == errors.ObjectExceptObject:
             if nextchar == "":
                 if lastchar == "{":
@@ -138,7 +141,7 @@ class JSONFixer(object):
         # TODO unknonwn
         return False, line
 
-    def patch_stop_iteration(self, line: str):
+    def patch_stop_iteration(self, line: str) -> Tuple[bool, str]:
         # TODO clean
         # TODO fix
         # 1. }]
@@ -147,8 +150,8 @@ class JSONFixer(object):
         # 4. -
         # 先 patch 完 {[]}
         # TODO: process number
-        if line.startswith('-.'):
-            new_line = '-0.' + line[2:]
+        if line.startswith("-."):
+            new_line = "-0." + line[2:]
             return False, new_line
         # patch
         left = patch_lastest_left_object_and_array(line)
@@ -159,7 +162,7 @@ class JSONFixer(object):
         new_line = left + line
         return False, new_line
 
-    def patch_half_parse(self, line, err_info):
+    def patch_half_parse(self, line: str, err_info: Any) -> Tuple[bool, str]:
         obj, end = err_info
         nextline = line[end:].strip()
         nextchar = nextline[:1]
@@ -179,10 +182,10 @@ class JSONFixer(object):
 
 
 # TODO better name
-def patch_lastest_left_object_and_array(line):
+def patch_lastest_left_object_and_array(line: str) -> str:
     # '}]{[' --> '[{}]{['
-    pairs = {'}': '{', ']': '['}
-    breaks = '{['
+    pairs = {"}": "{", "]": "["}
+    breaks = "{["
     left = ""
     for char in line:
         if char in breaks:
@@ -196,22 +199,22 @@ def patch_lastest_left_object_and_array(line):
 # TODO better name
 # TODO 改成 lastest
 # TODO {}}]]]] --> { not [
-def patch_guess_left(line):
-    miss_object = line.count('}') - line.count('{')
-    miss_array = line.count(']') - line.count('[')
+def patch_guess_left(line: str) -> str:
+    miss_object = line.count("}") - line.count("{")
+    miss_array = line.count("]") - line.count("[")
     if miss_object == miss_array == 0:
         if line[-1:] == '"' and line.count('"') == 1:
             return '"'
     elif miss_object >= miss_array:
-        return '{'
+        return "{"
     else:
-        return '['
-    return ''
+        return "["
+    return ""
 
 
-def insert_line(line, value, pos, end=None):
+def insert_line(line: str, value: str, pos: int) -> str:
     return line[:pos] + value + line[pos:]
 
 
-def remove_line(line, start, end):
+def remove_line(line: str, start: int, end: int) -> str:
     return line[:start] + line[end:]

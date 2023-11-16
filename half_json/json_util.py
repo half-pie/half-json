@@ -1,15 +1,12 @@
 # coding=utf8
 
 import json.decoder
-from collections import namedtuple
-from json.decoder import JSONDecoder
+from json.decoder import JSONDecodeError as PyJSONDecodeError, JSONDecoder, py_scanstring
 from json.scanner import py_make_scanner
-from json.decoder import py_scanstring
-from json.decoder import JSONDecodeError as PyJSONDecodeError
+from typing import Any, Dict, NamedTuple, Optional, Tuple, Union
 
 
-class JSONDecodeError(object):
-
+class JSONDecodeError:
     def __init__(self, parser, message):
         self.message = message
         self.parser = parser
@@ -18,8 +15,7 @@ class JSONDecodeError(object):
         return err.parser == self.parser and self.message in err.message
 
 
-class errors(object):
-
+class errors:
     StringInvalidUXXXXEscape = JSONDecodeError("py_scanstring", "Invalid \\uXXXX escape")
     # 2 different case
     StringUnterminatedString = JSONDecodeError("py_scanstring", "Unterminated string starting at")
@@ -67,23 +63,22 @@ class errors(object):
     """
 
 
-def errmsg_inv(e):
+def errmsg_inv(e: ValueError) -> Dict[str, Any]:
     assert isinstance(e, PyJSONDecodeError)
     parser = e.__dict__.get("parser", "")
     errmsg = e.msg
     localerr = errors.get_decode_error(parser, errmsg)
-    result = {
+    return {
         "parsers": e.__dict__.get("parsers", []),
         "error": localerr,
         "lineno": e.lineno,
         "colno": e.colno,
         "pos": e.pos,
     }
-    return result
 
 
-def record_parser_name(parser):
-    def new_parser(*args, **kwargs):
+def record_parser_name(parser: Any) -> Any:
+    def new_parser(*args: Any, **kwargs: Any) -> Any:
         try:
             return parser(*args, **kwargs)
         except Exception as e:
@@ -93,10 +88,11 @@ def record_parser_name(parser):
                 e.__dict__["parsers"] = []
             e.__dict__["parsers"].append(parser.__name__)
             raise e
+
     return new_parser
 
 
-def make_decoder(strict=True):
+def make_decoder(*, strict: bool = True) -> JSONDecoder:
     json.decoder.scanstring = record_parser_name(py_scanstring)
 
     decoder = JSONDecoder(strict=strict)
@@ -113,10 +109,13 @@ decoder = make_decoder()
 decoder_unstrict = make_decoder(strict=False)
 
 
-DecodeResult = namedtuple('DecodeResult', ['success', 'exception', 'err_info'])
+class DecodeResult(NamedTuple):
+    success: bool
+    exception: Optional[Exception]
+    err_info: Optional[Union[Dict[str, Any], Tuple[Any, Any]]]
 
 
-def decode_line(line, strict=True):
+def decode_line(line: str, *, strict: bool = True) -> DecodeResult:
     try:
         obj, end = (decoder if strict else decoder_unstrict).scan_once(line, 0)
         ok = end == len(line)

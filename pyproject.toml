@@ -1,13 +1,13 @@
 
 [project]
 name = "jsonfixer"
-version = "0.2.2"
+version = "0.3.0"
 description = "jsonfixer: fix invalid json: broken-json / truncated-json."
 authors = [
     {name = "alingse", email = "alingse@foxmail.com"},
 ]
 dependencies = []
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
@@ -20,7 +20,7 @@ classifiers = [
 Homepage = "https://github.com/half-pie/half-json"
 
 [project.scripts]
-jsonfixer = "half_json.main:fixjson"
+jsonfixer = "half_json.cli:fixjson"
 
 [build-system]
 requires = ["pdm-backend"]

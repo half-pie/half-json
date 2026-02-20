@@ -1,25 +1,21 @@
-# coding=utf8
-
 import sys
-
 import unittest
 
 from half_json.core import JSONFixer
 
 
 class TestSimpleCase(unittest.TestCase):
-
     def test_half_object(self):
-        line = '{'
+        line = "{"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('{}', newline)
+        self.assertEqual("{}", newline)
 
     def test_half_array(self):
-        line = '['
+        line = "["
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[]', newline)
+        self.assertEqual("[]", newline)
 
     def test_half_string(self):
         line = '"a'
@@ -28,34 +24,34 @@ class TestSimpleCase(unittest.TestCase):
         self.assertEqual('"a"', newline)
 
     def test_object_miss_key(self):
-        line = '{:1}'
+        line = "{:1}"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"":1}', newline)
 
     def test_half_array_with_element(self):
-        line = '[1'
+        line = "[1"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[1]', newline)
+        self.assertEqual("[1]", newline)
 
     def test_array_miss_element(self):
-        line = '[,'
+        line = "[,"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[]', newline)
+        self.assertEqual("[]", newline)
 
     def test_simple_mix(self):
-        line = '[{'
+        line = "[{"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[{}]', newline)
+        self.assertEqual("[{}]", newline)
 
-    def test_simple_mix_A(self):
-        line = '[{,'
+    def test_simple_mix_a(self):
+        line = "[{,"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[{}]', newline)
+        self.assertEqual("[{}]", newline)
 
     def test_miss_quote(self):
         line = '{"a'
@@ -83,7 +79,7 @@ class TestSimpleCase(unittest.TestCase):
         self.assertEqual('{"title": "Center ","ADVANCE":", ","text": "Business.English."}', newline)
 
     def test_case_miss_key(self):
-        line = '{['
+        line = "{["
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
         self.assertEqual('{"":[]}', newline)
@@ -95,17 +91,17 @@ class TestSimpleCase(unittest.TestCase):
         self.assertEqual('{"V":null}', newline)
 
     def test_array_miss_value(self):
-        line = '[,]'
+        line = "[,]"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[]', newline)
+        self.assertEqual("[]", newline)
 
     @unittest.skipIf(sys.version_info >= (3, 13), "Python 3.13+ accepts trailing commas in JSON")
     def test_array_miss_value_2(self):
-        line = '[null,]'
+        line = "[null,]"
         ok, newline, _ = JSONFixer().fix(line)
         self.assertTrue(ok)
-        self.assertEqual('[null]', newline)
+        self.assertEqual("[null]", newline)
 
     def test_unstrict_ok(self):
         line = '{"hello": "wor\nld"}'

@@ -11,15 +11,26 @@ def main(argv: list[str] | None = None) -> None:
         prog="jsonfixer",
         description="Fix invalid / truncated JSON.",
     )
-    parser.add_argument("infile", nargs="?", type=argparse.FileType("r"),
-                        default=sys.stdin, help="input file (default: stdin)")
-    parser.add_argument("outfile", nargs="?", type=argparse.FileType("w"),
-                        default=sys.stdout, help="output file (default: stdout)")
+    parser.add_argument(
+        "infile",
+        nargs="?",
+        type=argparse.FileType("r"),
+        default=sys.stdin,
+        help="input file (default: stdin)",
+    )
+    parser.add_argument(
+        "outfile",
+        nargs="?",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="output file (default: stdout)",
+    )
     parser.add_argument("--strict", dest="strict", action="store_true", default=True)
     parser.add_argument("--no-strict", dest="strict", action="store_false")
     parser.add_argument("--js-style", action="store_true", default=False)
-    parser.add_argument("--single", action="store_true", default=False,
-                        help="treat entire input as one JSON value")
+    parser.add_argument(
+        "--single", action="store_true", default=False, help="treat entire input as one JSON value"
+    )
     args = parser.parse_args(argv)
 
     fixer = JSONFixer(js_style=args.js_style)
@@ -45,8 +56,7 @@ def main(argv: list[str] | None = None) -> None:
             else:
                 print(result, file=sys.stderr)
         if total:
-            print(f"total is {total} and hit {hit} --> ratio:{hit * 1.0 / total}",
-                  file=sys.stderr)
+            print(f"total is {total} and hit {hit} --> ratio:{hit * 1.0 / total}", file=sys.stderr)
 
 
 # Backward-compatible entry point (same signature as old main.py:fixjson)

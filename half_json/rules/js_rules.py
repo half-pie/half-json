@@ -7,6 +7,7 @@ from half_json.rules import FixCandidate
 
 class FixJSStyleKey:
     """Convert JS-style bare or single-quoted keys to double-quoted."""
+
     name = "fix_js_style_key"
 
     def applies_to(self, ctx: ParseContext) -> bool:

@@ -36,6 +36,7 @@ def _guess_left(line: str) -> str:
 
 class PrependMissingBracket:
     """Handle StopIteration — the scanner couldn't start parsing at all."""
+
     name = "prepend_missing_bracket"
 
     def __init__(self) -> None:
@@ -67,6 +68,7 @@ class PrependMissingBracket:
 
 class WrapPartialParse:
     """Handle partial parse — decoded something but leftover remains."""
+
     name = "wrap_partial_parse"
 
     def __init__(self) -> None:

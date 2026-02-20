@@ -1,4 +1,4 @@
-from half_json.diagnosis import ErrorType, diagnose
+from half_json.diagnosis import diagnose
 from half_json.rules.string_rules import CloseUnterminatedString
 
 

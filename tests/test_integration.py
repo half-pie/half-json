@@ -1,4 +1,5 @@
 """End-to-end tests migrated from the original unittest suite."""
+
 import random
 import sys
 
@@ -6,26 +7,41 @@ import pytest
 
 from half_json.core import JSONFixer
 
-
 # --- test_cases.py equivalents ---
 
-@pytest.mark.parametrize("input_line, expected", [
-    ('{', '{}'),
-    ('[', '[]'),
-    ('"a', '"a"'),
-    ('{:1}', '{"":1}'),
-    ('[1', '[1]'),
-    ('[,', '[]'),
-    ('[{', '[{}]'),
-    ('[{,', '[{}]'),
-    ('{"a', '{"a":null}'),
-    ('{"a":1,"b"', '{"a":1,"b":null}'),
-    pytest.param('{"a":1,', '{"a":1}', marks=pytest.mark.skipif(sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON")),
-    ('{[', '{\"\":[]}'),
-    ('{"V":}', '{"V":null}'),
-    ('[,]', '[]'),
-    pytest.param('[null,]', '[null]', marks=pytest.mark.skipif(sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON")),
-])
+
+@pytest.mark.parametrize(
+    "input_line, expected",
+    [
+        ("{", "{}"),
+        ("[", "[]"),
+        ('"a', '"a"'),
+        ("{:1}", '{"":1}'),
+        ("[1", "[1]"),
+        ("[,", "[]"),
+        ("[{", "[{}]"),
+        ("[{,", "[{}]"),
+        ('{"a', '{"a":null}'),
+        ('{"a":1,"b"', '{"a":1,"b":null}'),
+        pytest.param(
+            '{"a":1,',
+            '{"a":1}',
+            marks=pytest.mark.skipif(
+                sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON"
+            ),
+        ),
+        ("{[", '{"":[]}'),
+        ('{"V":}', '{"V":null}'),
+        ("[,]", "[]"),
+        pytest.param(
+            "[null,]",
+            "[null]",
+            marks=pytest.mark.skipif(
+                sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON"
+            ),
+        ),
+    ],
+)
 def test_basic_fixes(input_line, expected):
     ok, line, _ = JSONFixer().fix(input_line)
     assert ok
@@ -59,19 +75,23 @@ def test_unstrict_fix():
 
 # --- test_stop.py equivalents ---
 
-@pytest.mark.parametrize("input_line, expected", [
-    ('}', '{}'),
-    (']', '[]'),
-    ('[]]', '[[]]'),
-    ('{}}', '{\"\":{}}'),
-    ('{}]', '[{}]'),
-    ('[]}', '{\"\":[]}'),
-    ('1, [\"\"], -1]', '[1, [\"\"], -1]'),
-    ('1, 2', '[1, 2]'),
-    ('"a":', '{"a":null}'),
-    ('{}[]{}}]', '[{\"\":{},\"\":[],\"\":{}}]'),
-    ('E"', '"E"'),
-])
+
+@pytest.mark.parametrize(
+    "input_line, expected",
+    [
+        ("}", "{}"),
+        ("]", "[]"),
+        ("[]]", "[[]]"),
+        ("{}}", '{"":{}}'),
+        ("{}]", "[{}]"),
+        ("[]}", '{"":[]}'),
+        ('1, [""], -1]', '[1, [""], -1]'),
+        ("1, 2", "[1, 2]"),
+        ('"a":', '{"a":null}'),
+        ("{}[]{}}]", '[{"":{},"":[],"":{}}]'),
+        ('E"', '"E"'),
+    ],
+)
 def test_structural_fixes(input_line, expected):
     ok, line, _ = JSONFixer().fix(input_line)
     assert ok
@@ -80,8 +100,9 @@ def test_structural_fixes(input_line, expected):
 
 # --- test_js.py equivalents ---
 
+
 def test_js_bare_key():
-    ok, line, _ = JSONFixer(js_style=True).fix('{a:1, b:{c:3}}')
+    ok, line, _ = JSONFixer(js_style=True).fix("{a:1, b:{c:3}}")
     assert ok
     assert line == '{"a":1, "b":{"c":3}}'
 

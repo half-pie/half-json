@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import NamedTuple
 
 from half_json.diagnosis import diagnose
-from half_json.rules import FixCandidate, RuleRegistry
+from half_json.rules import RuleRegistry
 from half_json.rules.array_rules import CloseOrCommaArray, FixArrayElement
 from half_json.rules.js_rules import FixJSStyleKey
 from half_json.rules.object_rules import (

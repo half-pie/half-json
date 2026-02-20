@@ -21,7 +21,7 @@ def build_bracket_stack(text: str, end: int | None = None) -> tuple[str, ...]:
         if escape:
             escape = False
             continue
-        if ch == '\\' and in_string:
+        if ch == "\\" and in_string:
             escape = True
             continue
         if ch == '"':
@@ -29,10 +29,8 @@ def build_bracket_stack(text: str, end: int | None = None) -> tuple[str, ...]:
             continue
         if in_string:
             continue
-        if ch in ('{', '['):
+        if ch in ("{", "["):
             stack.append(ch)
-        elif ch == '}' and stack and stack[-1] == '{':
-            stack.pop()
-        elif ch == ']' and stack and stack[-1] == '[':
+        elif ch == "}" and stack and stack[-1] == "{" or ch == "]" and stack and stack[-1] == "[":
             stack.pop()
     return tuple(stack)

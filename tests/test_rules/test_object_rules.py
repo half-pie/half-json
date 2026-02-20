@@ -15,25 +15,27 @@ class TestInsertMissingKey:
     rule = InsertMissingKey()
 
     def test_empty_after_brace(self):
-        ctx = diagnose('{')
+        ctx = diagnose("{")
         fix = self.rule.apply(ctx)
-        assert fix.text == '{}'
+        assert fix.text == "{}"
 
     def test_colon_without_key(self):
-        ctx = diagnose('{:1}')
+        ctx = diagnose("{:1}")
         fix = self.rule.apply(ctx)
         assert fix.text == '{"":1}'
 
-    @pytest.mark.skipif(sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON")
+    @pytest.mark.skipif(
+        sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON"
+    )
     def test_trailing_comma(self):
         ctx = diagnose('{"a":1,}')
         fix = self.rule.apply(ctx)
         assert fix.text == '{"a":1}'
 
     def test_double_comma(self):
-        ctx = diagnose('{,,')
+        ctx = diagnose("{,,")
         fix = self.rule.apply(ctx)
-        assert fix.text == '{,'
+        assert fix.text == "{,"
 
 
 class TestInsertMissingColon:

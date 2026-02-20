@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+import pytest
+
 
 def test_cli_pipe():
     result = subprocess.run(
@@ -12,6 +14,7 @@ def test_cli_pipe():
     assert result.stdout.strip() == '{"a":null}'
 
 
+@pytest.mark.skipif(sys.version_info >= (3, 13), reason="Python 3.13+ accepts trailing commas in JSON")
 def test_cli_multiline():
     result = subprocess.run(
         [sys.executable, "-m", "half_json.cli"],

@@ -1,5 +1,7 @@
 # coding=utf8
 
+import sys
+
 import unittest
 
 from half_json.core import JSONFixer
@@ -67,6 +69,7 @@ class TestSimpleCase(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual('{"a":1,"b":null}', newline)
 
+    @unittest.skipIf(sys.version_info >= (3, 13), "Python 3.13+ accepts trailing commas in JSON")
     def test_many_from_adhocore(self):
         line = '{"a":1,'
         ok, newline, _ = JSONFixer().fix(line)
@@ -97,6 +100,7 @@ class TestSimpleCase(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual('[]', newline)
 
+    @unittest.skipIf(sys.version_info >= (3, 13), "Python 3.13+ accepts trailing commas in JSON")
     def test_array_miss_value_2(self):
         line = '[null,]'
         ok, newline, _ = JSONFixer().fix(line)

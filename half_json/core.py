@@ -11,6 +11,7 @@ from half_json.rules.object_rules import (
     InsertMissingColon,
     InsertMissingKey,
     InsertMissingValue,
+    RemoveEmptyStringKey,
 )
 from half_json.rules.string_rules import CloseUnterminatedString
 from half_json.rules.structural_rules import (
@@ -31,6 +32,7 @@ def default_registry(*, js_style: bool = False) -> RuleRegistry:
     if js_style:
         registry.register(FixJSStyleKey())
     registry.register(InsertMissingKey())
+    registry.register(RemoveEmptyStringKey())
     registry.register(InsertMissingColon())
     registry.register(InsertMissingValue())
     registry.register(CloseOrCommaObject())

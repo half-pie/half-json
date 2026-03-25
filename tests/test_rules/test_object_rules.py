@@ -8,6 +8,7 @@ from half_json.rules.object_rules import (
     InsertMissingColon,
     InsertMissingKey,
     InsertMissingValue,
+    RemoveEmptyStringKey,
 )
 
 
@@ -68,3 +69,22 @@ class TestCloseOrCommaObject:
         ctx = diagnose('{"a":1"b":2}')
         fix = self.rule.apply(ctx)
         assert fix.text == '{"a":1,"b":2}'
+
+
+class TestRemoveEmptyStringKey:
+    rule = RemoveEmptyStringKey()
+
+    def test_empty_string_before_key(self):
+        ctx = diagnose('{""5": "10"}')
+        fix = self.rule.apply(ctx)
+        assert fix.text == '{"5": "10"}'
+
+    def test_empty_string_name_key(self):
+        ctx = diagnose('{""name": "value"}')
+        fix = self.rule.apply(ctx)
+        assert fix.text == '{"name": "value"}'
+
+    def test_nested_empty_string_key(self):
+        ctx = diagnose('{"story": {""5": "10-10"}}')
+        fix = self.rule.apply(ctx)
+        assert fix.text == '{"story": {"5": "10-10"}}'
